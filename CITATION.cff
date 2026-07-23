@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If Secure Software helps your work, cite this repository."
+title: "Secure Software"
+type: software
+authors:
+  - family-names: "GofMan5"
+    given-names: "Maksim"
+repository-code: "https://github.com/GofMan5/secure-software"
+url: "https://github.com/GofMan5/secure-software"
+license: "MIT OR Apache-2.0"
+version: 1.0.0
+date-released: 2026-07-24
+keywords:
+  - cybersecurity
+  - application security
+  - threat modeling
+  - Codex skill
+  - adversarial security audit

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Secure Software shield</title>
+  <desc id="desc">A dark shield with a teal circuit-shaped S and a red adversarial signal.</desc>
+  <defs>
+    <linearGradient id="bg" x1="24" y1="18" x2="224" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101D2A"/>
+      <stop offset="1" stop-color="#050A0F"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="71" y1="49" x2="185" y2="205" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#28E0C0"/>
+      <stop offset="1" stop-color="#00897B"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="url(#bg)"/>
+  <path d="M128 28 204 57v58c0 53-29 91-76 113-47-22-76-60-76-113V57l76-29Z" fill="#0A141D" stroke="url(#shield)" stroke-width="8"/>
+  <path d="M166 79c-13-10-28-15-43-15-22 0-39 11-39 29 0 19 17 25 41 30 19 4 28 8 28 17 0 10-10 16-25 16-17 0-33-7-45-19" fill="none" stroke="url(#shield)" stroke-width="15" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M87 92H68m19 0v-18m82 66h20m-20 0v20" fill="none" stroke="#28E0C0" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="68" cy="92" r="6" fill="#28E0C0"/>
+  <circle cx="189" cy="140" r="6" fill="#FF4D5E" filter="url(#glow)"/>
+  <path d="m177 65 13-13m-4 25 18-2" stroke="#FF4D5E" stroke-width="5" stroke-linecap="round"/>
+</svg>

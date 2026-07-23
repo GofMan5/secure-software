@@ -1,0 +1,25 @@
+name: Capability proposal
+description: Propose a focused, evidence-backed improvement
+title: "[Proposal]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: Demonstrated gap
+      description: Which realistic task or attack path currently fails?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or fixture
+      description: Provide a synthetic reproduction, public artifact, or benchmark case.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Smallest useful change
+    validations:
+      required: true

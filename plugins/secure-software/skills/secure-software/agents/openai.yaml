@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adversarial Security Engineer"
+  short_description: "Find and close real attack chains in software"
+  default_prompt: "Use $secure-software to adversarially audit or reverse the selected scope, prove realistic attack chains, and apply the smallest complete remediation when requested."

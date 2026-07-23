@@ -1,0 +1,49 @@
+{
+  "name": "secure-software",
+  "version": "1.0.0",
+  "description": "Adversarial, evidence-driven security engineering for software and infrastructure.",
+  "author": {
+    "name": "Maksim (GofMan5)",
+    "url": "https://github.com/GofMan5"
+  },
+  "homepage": "https://github.com/GofMan5/secure-software",
+  "repository": "https://github.com/GofMan5/secure-software",
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "security",
+    "cybersecurity",
+    "appsec",
+    "devsecops",
+    "threat-modeling",
+    "security-audit",
+    "reverse-engineering",
+    "mitre-attack"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Secure Software",
+    "shortDescription": "Adversarial security audits",
+    "longDescription": "Threat-model, audit, reverse, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow prioritizes reachable attack chains, explicit evidence, realistic impact, and root-boundary remediation.",
+    "developerName": "GofMan5",
+    "category": "Security",
+    "capabilities": [
+      "Threat modeling",
+      "Deep security audits",
+      "Attack-chain validation",
+      "Reverse engineering analysis",
+      "Cloud, IAM, and CI/CD hardening",
+      "Evidence-backed remediation"
+    ],
+    "websiteURL": "https://github.com/GofMan5/secure-software",
+    "privacyPolicyURL": "https://github.com/GofMan5/secure-software/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/GofMan5/secure-software/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Threat-model this repository and trace the highest-impact attack paths.",
+      "Run a deep security audit and validate findings from entry point to impact.",
+      "Fix the validated finding at the narrowest shared trust boundary."
+    ],
+    "brandColor": "#00897B",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png"
+  }
+}

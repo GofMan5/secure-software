@@ -1,0 +1,18 @@
+Secure Software
+Copyright 2026 Maksim (GofMan5)
+
+This project references public security standards, vulnerability databases,
+vendor advisories, and threat-intelligence sources. Those materials remain
+subject to their respective owners' terms, licenses, and trademarks. The
+project does not bundle their catalogs in a release archive; the included
+fetcher retrieves selected data from official public endpoints at runtime.
+
+MITRE ATT&CK and ATT&CK are trademarks of The MITRE Corporation. Use of those
+names identifies the referenced framework and does not imply endorsement.
+
+CISA, OWASP, NIST, CIS, vendor, and product names belong to their respective
+owners. Links and interoperability references do not imply affiliation or
+endorsement.
+
+The original license for this project is MIT OR Apache-2.0. See LICENSE,
+LICENSE-MIT, and LICENSE-APACHE.

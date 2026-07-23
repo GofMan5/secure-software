@@ -1,0 +1,20 @@
+{
+  "name": "secure-software",
+  "interface": {
+    "displayName": "Secure Software"
+  },
+  "plugins": [
+    {
+      "name": "secure-software",
+      "source": {
+        "source": "local",
+        "path": "./plugins/secure-software"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Security"
+    }
+  ]
+}

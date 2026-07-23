@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Secure Software</title>
+  <desc id="desc">Adversarial security engineering for Codex.</desc>
+  <defs>
+    <linearGradient id="background" x1="60" y1="20" x2="1110" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101D2A"/>
+      <stop offset="0.55" stop-color="#071019"/>
+      <stop offset="1" stop-color="#04080C"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="80" y1="70" x2="1080" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#28E0C0"/>
+      <stop offset="1" stop-color="#00897B"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M44 0H0v44" fill="none" stroke="#173044" stroke-width="1"/></pattern>
+  </defs>
+  <rect width="1200" height="360" rx="32" fill="url(#background)"/>
+  <rect width="1200" height="360" rx="32" fill="url(#grid)" opacity="0.42"/>
+  <path d="M190 55 302 98v85c0 78-43 134-112 167-69-33-112-89-112-167V98l112-43Z" fill="#08131C" stroke="url(#accent)" stroke-width="9"/>
+  <path d="M244 130c-18-14-40-21-61-21-31 0-56 16-56 42 0 27 24 36 59 43 27 6 40 12 40 25 0 14-14 23-36 23-24 0-47-10-64-27" fill="none" stroke="url(#accent)" stroke-width="18" stroke-linecap="round" filter="url(#glow)"/>
+  <circle cx="273" cy="219" r="8" fill="#FF4D5E" filter="url(#glow)"/>
+  <text x="380" y="155" fill="#F4FAFC" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="70" font-weight="800" letter-spacing="-2">SECURE SOFTWARE</text>
+  <text x="384" y="216" fill="#81A6B8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="28" font-weight="500">Adversarial security engineering for Codex</text>
+  <path d="M385 259h632" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
+  <text x="384" y="306" fill="#B7CCD6" font-family="ui-monospace,Cascadia Mono,Consolas,monospace" font-size="20">trace attack paths  •  prove evidence  •  fix the trust boundary</text>
+</svg>
