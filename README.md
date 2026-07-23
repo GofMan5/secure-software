@@ -53,7 +53,7 @@ The skill is capability-first: it supports deep reverse, exploit-chain, binary, 
 ### Codex plugin marketplace
 
 ```bash
-codex plugin marketplace add GofMan5/secure-software
+codex plugin marketplace add GofMan5/secure-software --ref v1.0.0
 codex plugin add secure-software@secure-software
 ```
 
@@ -68,7 +68,7 @@ $secure-software threat-model this repository and trace the highest-impact attac
 Ask Codex:
 
 ```text
-$skill-installer install https://github.com/GofMan5/secure-software/tree/main/plugins/secure-software/skills/secure-software
+$skill-installer install https://github.com/GofMan5/secure-software/tree/v1.0.0/plugins/secure-software/skills/secure-software
 ```
 
 ### Repository-scoped use
