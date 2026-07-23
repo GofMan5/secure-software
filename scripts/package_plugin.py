@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import zipfile
 from pathlib import Path
 
+sys.dont_write_bytecode = True
 import validate_repo
 
 ROOT = Path(__file__).resolve().parents[1]
