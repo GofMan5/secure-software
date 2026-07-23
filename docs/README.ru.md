@@ -12,7 +12,7 @@
 ## Установка
 
 ```bash
-codex plugin marketplace add GofMan5/secure-software
+codex plugin marketplace add GofMan5/secure-software --ref v1.0.0
 codex plugin add secure-software@secure-software
 ```
 
@@ -25,7 +25,7 @@ $secure-software проведи глубокий аудит репозитори
 Прямая установка одного скилла:
 
 ```text
-$skill-installer install https://github.com/GofMan5/secure-software/tree/main/plugins/secure-software/skills/secure-software
+$skill-installer install https://github.com/GofMan5/secure-software/tree/v1.0.0/plugins/secure-software/skills/secure-software
 ```
 
 ## Что отличает скилл
