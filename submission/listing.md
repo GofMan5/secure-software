@@ -6,7 +6,7 @@ Secure Software
 
 ## Short description
 
-Adversarial security audits
+Offensive security engineering
 
 ## Developer
 
@@ -18,15 +18,15 @@ Security
 
 ## Long description
 
-Secure Software helps Codex threat-model, audit, reverse, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, update chains, games, firmware, IoT, and OT/ICS.
+Secure Software helps Codex attack, emulate, reverse, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, update chains, games, firmware, IoT, and OT/ICS.
 
-It prioritizes realistic, reachable attack chains over checklist volume. Candidates move through explicit discovery, validation, attack-path, and remediation phases. Reportable findings include exact evidence, attacker prerequisites, complete source-to-impact reasoning, counterevidence, blast radius, confidence, and the smallest complete root-boundary fix.
+It develops and executes working exploit or payload proofs, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation inside the selected target and effect contract. It prioritizes realistic, reachable attack chains over checklist volume. Reportable findings include exact evidence, attacker prerequisites, complete source-to-impact reasoning, counterevidence, blast radius, confidence, and the smallest complete root-boundary fix.
 
 The plugin can use installed Codex Security executors for repository and diff scans while preserving an adversarial evidence contract. It also includes a provenance-rich standard-library fetcher for active MITRE ATT&CK Enterprise, Mobile, and ICS techniques and the CISA Known Exploited Vulnerabilities catalog.
 
 ## Starter prompts
 
-1. Threat-model this repository and trace the highest-impact attack paths.
+1. Reverse this supplied target, build and run the smallest working exploit proof, and trace the full attack chain.
 2. Run a deep security audit and validate findings from entry point to impact.
 3. Fix the validated finding at the narrowest shared trust boundary.
 

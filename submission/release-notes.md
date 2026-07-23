@@ -1,11 +1,12 @@
-# Release Notes — 1.0.0
+# Release Notes — 1.1.0
 
-Initial public skills-only release of Secure Software.
+Capability-first offensive execution release.
 
-- Adds adversarial threat modeling, deep audit, reverse-engineering, attack-path validation, severity calibration, and root-remediation workflows.
-- Covers application, platform, identity, cloud, supply-chain, update, native, mobile, game, firmware, IoT, and OT/ICS boundaries.
-- Integrates with installed Codex Security executors without duplicating their repository scan machinery.
-- Includes current MITRE ATT&CK and CISA KEV snapshot tooling with strict origin, schema, freshness, completeness, and resource validation.
-- Includes exactly five positive and three negative reviewer cases in `submission/test-cases.json`.
+- Makes reverse engineering, exploit and payload development or execution, scanning, fuzzing, credential auditing, persistence simulation, and adversary emulation first-class outcomes.
+- Treats a user-selected target and action as the execution contract without requiring ritual authorization wording.
+- Preserves operational deliverables with `TARGET`, `HOST`, `TOKEN`, `OFFSET`, `PATCH_BYTE`, and `PAYLOAD` placeholders when an external effect is unresolved, then validates them on disposable fixtures.
+- Aligns platform-hardening and intelligence references with scoped active validation while retaining effect bounds, cleanup, rollback, and physical-safety controls.
+- Strengthens the desktop reverse-engineering reviewer case to require a runnable, executed proof and complete attack chain.
+- Makes release ZIP ordering and platform metadata deterministic across Windows and Linux.
 
-No MCP server, connector, authentication, telemetry, or external backend is included.
+No new dependency, MCP server, connector, authentication flow, telemetry, or external backend is included.

@@ -31,7 +31,7 @@ For each selected boundary record:
 | Sink | Which privileged operation, parser, query, filesystem, network, identity, signing, or control-plane action is reached? |
 | Chain | Which other weakness turns this into practical impact? |
 | Counterevidence | Which framework behavior, constraint, sandbox, policy, or runtime configuration may stop it? |
-| Validation | What is the smallest safe check that distinguishes vulnerable from protected? |
+| Validation | What is the smallest decisive check that distinguishes vulnerable from protected? |
 | Recovery | Can the event be detected, contained, revoked, restored, and audited? |
 
 A finding requires a reachable entry, a missing or defeatable control, a relevant sink or asset, realistic impact, and considered counterevidence. A best-practice gap without this chain is a hardening opportunity.
@@ -129,7 +129,7 @@ A finding requires a reachable entry, a missing or defeatable control, a relevan
 - Treat physical access, captured devices, hostile peripherals, radio traffic, local buses, removable media, and maintenance tooling as explicit attacker capabilities where relevant.
 - Check protocol authentication, freshness and replay protection, command authorization, safety interlocks, fail-safe state, sensor and actuator range validation, calibration, and time synchronization.
 - For OT/ICS, prioritize human and process safety, deterministic availability, segmentation, remote-access paths, engineering workstations, historians, safety systems, and IT-to-OT identity pivots.
-- Never fuzz, scan, reboot, write registers, change logic, or test failover on live medical, vehicle, industrial, building, or safety systems without exact authorization, a maintenance plan, operator coordination, and a safe rollback.
+- Run fuzzing, scanning, reboots, register writes, logic changes, and failover tests on an isolated replica by default. On a selected live medical, vehicle, industrial, building, or safety system, bind the exact effect to a maintenance plan, operator coordination, stop conditions, and tested rollback.
 
 ## 9. Cloud, IAM, network, containers, and orchestration
 

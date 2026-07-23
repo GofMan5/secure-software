@@ -2,6 +2,14 @@
 
 All notable changes follow [Semantic Versioning](https://semver.org/).
 
+## 1.1.0 - 2026-07-24
+
+- Made offensive testing, reverse engineering, exploit and payload execution, fuzzing, scanning, credential auditing, persistence simulation, and adversary emulation first-class skill outcomes.
+- Treated a named target and action as the execution contract and kept unresolved external work operational through placeholders and disposable fixtures.
+- Replaced blanket authorization blockers in platform and intelligence guidance with explicit target, effect, cleanup, rollback, and physical-safety bounds.
+- Updated skill metadata, public documentation, and the desktop reverse-engineering regression case for working exploit proof behavior.
+- Made release ZIP ordering and platform metadata deterministic across Windows and Linux.
+
 ## 1.0.0 - 2026-07-24
 
 - Initial public skills-only Codex plugin release.

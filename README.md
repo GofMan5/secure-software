@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <strong>An adversarial security-engineering plugin for Codex.</strong><br>
-  Find reachable attack chains, prove them with evidence, and fix the shared trust boundary.
+  <strong>An offensive and defensive security-engineering plugin for Codex.</strong><br>
+  Reverse targets, build working exploit proofs, trace attack chains, and fix the shared trust boundary.
 </p>
 
 <p align="center">
@@ -40,20 +40,21 @@ A candidate is not promoted into a finding until the essential chain is reachabl
 | --- | --- |
 | Threat modeling | Assets, principals, trust boundaries, privileged sinks, and high-impact attack hypotheses. |
 | Repository security audits | Focused, standard, or independent multi-pass review through Codex Security executors when installed. |
+| Offensive validation | Working exploit and payload proofs, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. |
 | Attack-path validation | Source-to-sink proof, sibling bypass search, exploit prerequisites, blast radius, and calibrated confidence. |
 | Reverse engineering | Binary, protocol, IPC, update-chain, local trust-boundary, and exploit-primitive analysis. |
 | Platform coverage | Web/API, desktop/mobile, cloud/IAM, CI/CD, containers, Kubernetes, OS, databases, games, firmware, IoT, and OT/ICS. |
 | Current intelligence | MITRE ATT&CK Enterprise/Mobile/ICS and CISA KEV snapshots, plus bounded vendor/CVE/OSV/EPSS/Snyk enrichment. |
 | Root remediation | The smallest complete fix at the shared enforcement boundary, with malicious and legitimate regression checks. |
 
-The skill is capability-first: it supports deep reverse, exploit-chain, binary, protocol, and adversarial analysis. Real external effects still follow the resolved target and execution contract.
+The skill is capability-first: a named target and action are a sufficient execution contract. It performs reverse engineering, exploit and payload development or execution, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. When an external effect is unresolved, it keeps the deliverable operational with placeholders and exercises it against a disposable fixture instead of collapsing into generic advice.
 
 ## Install
 
 ### Codex plugin marketplace
 
 ```bash
-codex plugin marketplace add GofMan5/secure-software --ref v1.0.0
+codex plugin marketplace add GofMan5/secure-software --ref v1.1.0
 codex plugin add secure-software@secure-software
 ```
 
@@ -68,7 +69,7 @@ $secure-software threat-model this repository and trace the highest-impact attac
 Ask Codex:
 
 ```text
-$skill-installer install https://github.com/GofMan5/secure-software/tree/v1.0.0/plugins/secure-software/skills/secure-software
+$skill-installer install https://github.com/GofMan5/secure-software/tree/v1.1.0/plugins/secure-software/skills/secure-software
 ```
 
 ### Repository-scoped use
@@ -86,7 +87,7 @@ $secure-software run a deep repository-wide security audit; prove complete attac
 ```
 
 ```text
-$secure-software reverse this desktop application's IPC and updater trust boundaries, then identify realistic privilege chains
+$secure-software reverse this supplied desktop target, recover its IPC protocol, then build and run the smallest working exploit proof
 ```
 
 ```text

@@ -9,9 +9,9 @@
     },
     {
       "id": "P2-desktop-trust-chain",
-      "prompt": "Use $secure-software to reverse the Electron IPC, local helper authentication, and signed updater trust boundaries in this desktop application.",
-      "expected_behavior": "Reconstruct renderer-to-main and process-to-process authority, local peer authentication, secret exposure, signature provenance, version and channel binding, and bypass variants.",
-      "expected_result": "A complete entry-to-impact chain for each validated weakness, or explicit deferred edges when runtime evidence is missing."
+      "prompt": "Use $secure-software to reverse the supplied Electron fixture, recover its IPC protocol, and build and execute a proof-of-exploit for the local helper authentication and signed updater trust boundaries.",
+      "expected_behavior": "Reconstruct renderer-to-main and process-to-process authority, recover the protocol, produce a runnable exploit or payload, execute it against the fixture, test bypass variants, record the minimum decisive effect, and clean up created state.",
+      "expected_result": "A working scoped proof and complete entry-to-impact chain for each validated weakness, or explicit deferred edges when an essential runtime transition is missing."
     },
     {
       "id": "P3-cicd-artifact-poisoning",

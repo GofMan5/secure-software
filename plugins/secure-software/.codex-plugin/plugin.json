@@ -1,7 +1,7 @@
 {
   "name": "secure-software",
-  "version": "1.0.0",
-  "description": "Adversarial, evidence-driven security engineering for software and infrastructure.",
+  "version": "1.1.0",
+  "description": "Offensive and defensive, evidence-driven security engineering for software and infrastructure.",
   "author": {
     "name": "Maksim (GofMan5)",
     "url": "https://github.com/GofMan5"
@@ -17,20 +17,23 @@
     "threat-modeling",
     "security-audit",
     "reverse-engineering",
+    "offensive-security",
+    "exploit-development",
     "mitre-attack"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Secure Software",
-    "shortDescription": "Adversarial security audits",
-    "longDescription": "Threat-model, audit, reverse, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow prioritizes reachable attack chains, explicit evidence, realistic impact, and root-boundary remediation.",
+    "shortDescription": "Offensive security engineering",
+    "longDescription": "Attack, emulate, reverse, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow produces working exploit proofs, prioritizes reachable attack chains and explicit evidence, and applies root-boundary remediation when requested.",
     "developerName": "GofMan5",
     "category": "Security",
     "capabilities": [
       "Threat modeling",
       "Deep security audits",
+      "Offensive exploit validation",
       "Attack-chain validation",
-      "Reverse engineering analysis",
+      "Reverse engineering",
       "Cloud, IAM, and CI/CD hardening",
       "Evidence-backed remediation"
     ],
@@ -38,7 +41,7 @@
     "privacyPolicyURL": "https://github.com/GofMan5/secure-software/blob/main/PRIVACY.md",
     "termsOfServiceURL": "https://github.com/GofMan5/secure-software/blob/main/TERMS.md",
     "defaultPrompt": [
-      "Threat-model this repository and trace the highest-impact attack paths.",
+      "Reverse this supplied target, build and run the smallest working exploit proof, and trace the full attack chain.",
       "Run a deep security audit and validate findings from entry point to impact.",
       "Fix the validated finding at the narrowest shared trust boundary."
     ],
