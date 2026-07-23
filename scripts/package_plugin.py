@@ -26,14 +26,14 @@ def main() -> int:
         (path for path in PLUGIN.rglob("*") if path.is_file()),
         key=lambda path: path.relative_to(PLUGIN).as_posix(),
     )
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as archive:
         for path in files:
             relative = path.relative_to(PLUGIN)
             info = zipfile.ZipInfo((Path("secure-software") / relative).as_posix(), (2026, 1, 1, 0, 0, 0))
             info.create_system = 3
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_STORED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, path.read_bytes(), compresslevel=9)
+            archive.writestr(info, path.read_bytes())
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     with zipfile.ZipFile(output) as archive:
         names = archive.namelist()

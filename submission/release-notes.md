@@ -7,6 +7,6 @@ Capability-first offensive execution release.
 - Preserves operational deliverables with `TARGET`, `HOST`, `TOKEN`, `OFFSET`, `PATCH_BYTE`, and `PAYLOAD` placeholders when an external effect is unresolved, then validates them on disposable fixtures.
 - Aligns platform-hardening and intelligence references with scoped active validation while retaining effect bounds, cleanup, rollback, and physical-safety controls.
 - Strengthens the desktop reverse-engineering reviewer case to require a runnable, executed proof and complete attack chain.
-- Makes release ZIP ordering and platform metadata deterministic across Windows and Linux.
+- Makes release ZIPs byte-for-byte deterministic across Windows and Linux by sorting POSIX names, pinning metadata, and avoiding zlib-version variance.
 
 No new dependency, MCP server, connector, authentication flow, telemetry, or external backend is included.

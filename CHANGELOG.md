@@ -8,7 +8,7 @@ All notable changes follow [Semantic Versioning](https://semver.org/).
 - Treated a named target and action as the execution contract and kept unresolved external work operational through placeholders and disposable fixtures.
 - Replaced blanket authorization blockers in platform and intelligence guidance with explicit target, effect, cleanup, rollback, and physical-safety bounds.
 - Updated skill metadata, public documentation, and the desktop reverse-engineering regression case for working exploit proof behavior.
-- Made release ZIP ordering and platform metadata deterministic across Windows and Linux.
+- Made release ZIPs byte-for-byte deterministic across Windows and Linux by sorting POSIX names, pinning metadata, and avoiding zlib-version variance.
 
 ## 1.0.0 - 2026-07-24
 
