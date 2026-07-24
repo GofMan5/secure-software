@@ -10,18 +10,69 @@
 </p>
 
 <p align="center">
-  <strong>An offensive and defensive security-engineering plugin for Codex.</strong><br>
+  <strong>A portable security-engineering Agent Skill for Claude Code, Codex, Copilot, OMP, Pi, OpenCode, and dozens of compatible agents.</strong><br>
   Reverse targets, build working exploit proofs, trace attack chains, and fix the shared trust boundary.
 </p>
 
 <p align="center">
   <a href="docs/README.ru.md">Русская версия</a> ·
-  <a href="#install">Install</a> ·
+  <a href="#install-anywhere">Install</a> ·
   <a href="#what-it-does">Capabilities</a> ·
   <a href="docs/EVALUATION.md">Evaluation</a> ·
   <a href="ROADMAP.md">Roadmap</a> ·
   <a href="SECURITY.md">Security policy</a>
 </p>
+
+## Install anywhere
+
+Secure Software uses the open Agent Skills layout. The same source works across clients supported by the [`skills` installer](https://github.com/vercel-labs/skills#supported-agents); no client-specific fork is required.
+
+Let the installer use a detected client or choose clients and installation scope interactively:
+
+```bash
+npx skills add GofMan5/secure-software --skill secure-software
+```
+
+Install globally for Claude Code, Codex, GitHub Copilot, OpenCode, Pi, and OMP in one command:
+
+```bash
+npx skills add GofMan5/secure-software --skill secure-software --global --copy --yes -a claude-code -a codex -a github-copilot -a opencode -a pi
+```
+
+OMP discovers Pi skills by default, so `-a pi` covers OMP too. For project installs, OMP also discovers `.agents/skills`. Omit `--global` for repository-scoped installation. To install into every client supported by the installer, use `--agent '*'` instead of the listed `-a` options.
+
+Update global installed copies with:
+
+```bash
+npx skills update secure-software --global --yes
+```
+
+Omit `--global` when updating a project install.
+
+### Manual or custom destination
+
+Copy the complete `plugins/secure-software/skills/secure-software` directory, including `references/` and `scripts/`, to `<skills-root>/secure-software`:
+
+| Client | Project skills root | User skills root |
+| --- | --- | --- |
+| Claude Code | `.claude/skills/` | `~/.claude/skills/` |
+| Codex | `.agents/skills/` | `~/.codex/skills/` |
+| GitHub Copilot | `.agents/skills/` | `~/.copilot/skills/` |
+| OMP | `.omp/skills/` or `.agents/skills/` | `<omp-config>/skills/` (`omp config path`) or `~/.pi/agent/skills/` |
+| Pi | `.pi/skills/` | `~/.pi/agent/skills/` |
+| OpenCode | `.agents/skills/` | `~/.config/opencode/skills/` |
+| Other Agent Skills client | The client's skills root | The client's user skills root |
+
+### Native Codex plugin
+
+The Codex marketplace package also includes branded metadata and starter prompts:
+
+```bash
+codex plugin marketplace add GofMan5/secure-software --ref v1.1.0
+codex plugin add secure-software@secure-software
+```
+
+Restart the client after installation. In Codex invoke `$secure-software`; in OMP invoke `/skill:secure-software`; in any client you can ask it to use the `secure-software` skill explicitly.
 
 ## Why Secure Software
 
@@ -49,53 +100,22 @@ A candidate is not promoted into a finding until the essential chain is reachabl
 
 The skill is capability-first: a named target and action are a sufficient execution contract. It performs reverse engineering, exploit and payload development or execution, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. When an external effect is unresolved, it keeps the deliverable operational with placeholders and exercises it against a disposable fixture instead of collapsing into generic advice.
 
-## Install
-
-### Codex plugin marketplace
-
-```bash
-codex plugin marketplace add GofMan5/secure-software --ref v1.1.0
-codex plugin add secure-software@secure-software
-```
-
-Start a new Codex session after installation, then invoke the skill explicitly:
-
-```text
-$secure-software threat-model this repository and trace the highest-impact attack paths
-```
-
-### Direct skill install
-
-Ask Codex:
-
-```text
-$skill-installer install https://github.com/GofMan5/secure-software/tree/v1.1.0/plugins/secure-software/skills/secure-software
-```
-
-### Repository-scoped use
-
-Copy `plugins/secure-software/skills/secure-software` into:
-
-```text
-<repo>/.agents/skills/secure-software
-```
-
 ## Example prompts
 
 ```text
-$secure-software run a deep repository-wide security audit; prove complete attack paths and rank only validated findings
+Use secure-software to run a deep repository-wide security audit; prove complete attack paths and rank only validated findings
 ```
 
 ```text
-$secure-software reverse this supplied desktop target, recover its IPC protocol, then build and run the smallest working exploit proof
+Use secure-software to reverse this supplied desktop target, recover its IPC protocol, then build and run the smallest working exploit proof
 ```
 
 ```text
-$secure-software correlate this SBOM and deployed configuration with vendor advisories, OSV, KEV, and EPSS; prove reachability before reporting
+Use secure-software to correlate this SBOM and deployed configuration with vendor advisories, OSV, KEV, and EPSS; prove reachability before reporting
 ```
 
 ```text
-$secure-software fix the validated tenant-escape finding at the narrowest shared authorization boundary and add one regression check
+Use secure-software to fix the validated tenant-escape finding at the narrowest shared authorization boundary and add one regression check
 ```
 
 ## Evidence contract

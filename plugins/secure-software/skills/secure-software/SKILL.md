@@ -1,6 +1,6 @@
 ---
 name: secure-software
-description: "Offensive and defensive, evidence-driven security engineering for websites, CMS, APIs, services, desktop and mobile apps, game backends, operating systems, containers, cloud and IAM, CI/CD, dependencies, update systems, and deployed software. Use when Codex must attack or emulate an adversary, develop or execute exploits and payloads, fuzz or scan, reverse binaries or protocols, reconstruct security boundaries, threat-model, security-audit, review a security-sensitive diff, validate or remediate a vulnerability, trace exploit chains, harden architecture, investigate an incident path, or assess release and production security. Execute requested analysis and in-scope validation directly; constrain effects only to the resolved target and effect contract."
+description: "Offensive and defensive, evidence-driven security engineering for websites, CMS, APIs, services, desktop and mobile apps, game backends, operating systems, containers, cloud and IAM, CI/CD, dependencies, update systems, and deployed software. Use when the agent must attack or emulate an adversary, develop or execute exploits and payloads, fuzz or scan, reverse binaries or protocols, reconstruct security boundaries, threat-model, security-audit, review a security-sensitive diff, validate or remediate a vulnerability, trace exploit chains, harden architecture, investigate an incident path, or assess release and production security. Execute requested analysis and in-scope validation directly; constrain effects only to the resolved target and effect contract."
 ---
 
 # Secure Software
@@ -24,7 +24,7 @@ Never promise that a system is secure, unhackable, or exhaustively tested. State
 
 ## Select the smallest sufficient route
 
-Use the matching installed Codex Security skill as the phase executor instead of recreating it. Keep this skill's hostile-environment, intelligence, evidence, and Ponytail rules as an overlay.
+When a matching Codex Security skill is installed, use it as the phase executor instead of recreating it. Keep this skill's hostile-environment, intelligence, evidence, and Ponytail rules as an overlay.
 
 | Request | Preferred route |
 | --- | --- |
