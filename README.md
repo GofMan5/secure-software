@@ -68,7 +68,7 @@ Copy the complete `plugins/secure-software/skills/secure-software` directory, in
 The Codex marketplace package also includes branded metadata and starter prompts:
 
 ```bash
-codex plugin marketplace add GofMan5/secure-software --ref v1.1.0
+codex plugin marketplace add GofMan5/secure-software --ref main
 codex plugin add secure-software@secure-software
 ```
 
@@ -94,8 +94,10 @@ A candidate is not promoted into a finding until the essential chain is reachabl
 | Offensive validation | Working exploit and payload proofs, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. |
 | Attack-path validation | Source-to-sink proof, sibling bypass search, exploit prerequisites, blast radius, and calibrated confidence. |
 | Reverse engineering | Binary, protocol, IPC, update-chain, local trust-boundary, and exploit-primitive analysis. |
+| Software protection | Cross-language release hardening, selective obfuscation, packing/virtualization, anti-tamper, licensing, signing order, and measured reverse-resistance. |
 | Platform coverage | Web/API, desktop/mobile, cloud/IAM, CI/CD, containers, Kubernetes, OS, databases, games, firmware, IoT, and OT/ICS. |
 | Current intelligence | MITRE ATT&CK Enterprise/Mobile/ICS and CISA KEV snapshots, plus bounded vendor/CVE/OSV/EPSS/Snyk enrichment. |
+| Deterministic tool evidence | Normalized receipts for scanner, binary/decompiler, and runtime observations without treating tool labels as findings. |
 | Root remediation | The smallest complete fix at the shared enforcement boundary, with malicious and legitimate regression checks. |
 
 The skill is capability-first: a named target and action are a sufficient execution contract. It performs reverse engineering, exploit and payload development or execution, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. When an external effect is unresolved, it keeps the deliverable operational with placeholders and exercises it against a disposable fixture instead of collapsing into generic advice.
@@ -141,10 +143,50 @@ python plugins/secure-software/skills/secure-software/scripts/fetch_threat_intel
 
 It validates HTTPS origins, redirects, catalog versions, STIX identities, ATT&CK relationships, KEV schema and freshness, resource limits, and atomic output behavior. Intelligence matches are leads, not automatic findings.
 
+## Software protection
+
+The conditionally loaded protection runbook covers stable production choices for C/C++, Rust, Go, .NET, JVM/Android, JavaScript/Electron, Python, Swift/Objective-C, WebAssembly, and game/mobile builds. It separates real trust controls from cost-raising layers: remove embedded secrets first, harden and strip release builds, obfuscate selected high-value code, apply post-link protection where justified, preserve private symbol maps, then sign and verify the final artifact.
+
+It treats compile-time XOR strings, minification, UPX, ASAR, PyInstaller, and similar packaging as limited concealment rather than a security boundary. Every plan includes before/after `strings`/symbol/decompiler evidence, performance and startup budgets, AV/EDR checks, crash-symbol recovery, reproducibility impact, update compatibility, and rollback.
+
+## Deterministic evidence adapters
+
+The standard-library adapter records scanner, binary/decompiler, and runtime evidence without making any external tool mandatory. It uses project-native or already-installed tools when available, starts custom argv with `shell=False`, and writes normalized receipts with scope, argv, tool version, exit state, truncation, raw digest, redaction, observations, and errors. Scanner and tool output remains candidate evidence until the attack path is validated.
+
+```bash
+python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --help
+python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+```
+
+## ChainBench-12
+
+The repository includes a standard-library blind paired runner and 12 synthetic cases: six vulnerable chains plus six isomorphic near-miss controls. It creates deterministic randomized plans, isolates run workspaces, records execution receipts and workspace mutations, and scores chain recall, precision, near-miss rejection, root cause, evidence, severity, time, and token use.
+
+```bash
+python scripts/run_ab_benchmark.py validate
+python scripts/run_ab_benchmark.py plan --out .chainbench/plan.json --repeats 3 --seed 20260724
+python scripts/run_ab_benchmark.py run --plan .chainbench/plan.json --results .chainbench/results \
+  --baseline-command '["AGENT_CLI","--workspace","{workspace}","--prompt-file","{prompt}","--output","{output}","--schema","{schema}"]' \
+  --treatment-command '["AGENT_CLI","--workspace","{workspace}","--prompt-file","{prompt}","--output","{output}","--schema","{schema}"]' \
+  --baseline-context .chainbench/baseline-context.json \
+  --treatment-context .chainbench/treatment-context.json \
+  --isolation external-sandbox
+python scripts/run_ab_benchmark.py score --plan .chainbench/plan.json \
+  --results .chainbench/results --out .chainbench/score.json
+```
+
+Replace `AGENT_CLI` and its argv with the same external runner for both variants; only their clean profiles differ. Each context file is a publishable, secret-free JSON object that freezes `client`, `model`, `reasoning`, `executor`, `network`, positive `token_budget`, and `profile_sha256`, `skill_sha256`, `tools_sha256`; use `"absent"` only where a component is intentionally missing. The runner hashes that manifest together with command-linked files, environment values, timeout, and isolation, then rejects stale cached runs when any input changes.
+
+The stdlib harness sanitizes the inherited environment, forwards only explicit `--pass-env NAME` entries, enforces one wall-clock deadline, kills the spawned process tree, rejects non-portable fixture paths, and detects mutations inside each disposable workspace. Credible host/filesystem/network confinement still comes from the container or VM wrapper named by `--isolation external-sandbox`; the flag records that external boundary rather than creating one.
+
+The bundled public corpus is a reproducibility and regression set, not fresh blind evidence. A credible new A/B comparison uses an unpublished suite with the same schema and a clean baseline profile with no Secure Software files or metadata; baseline and treatment keep the same client, model snapshot, executor, tools, limits, and environment, with only the frozen skill added to treatment. Freeze results before publishing the new corpus and truth.
+
 ## Package layout
 
 ```text
 .agents/plugins/marketplace.json
+benchmark/chainbench-12.json             # public repository regression corpus
+scripts/run_ab_benchmark.py              # repository-only A/B runner
 plugins/secure-software/
 ├── .codex-plugin/plugin.json
 ├── assets/
@@ -152,22 +194,30 @@ plugins/secure-software/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── references/
-    └── scripts/fetch_threat_intel.py
+    │   ├── evidence-adapters.md
+    │   └── software-protection.md
+    └── scripts/
+        ├── evidence_adapter.py
+        └── fetch_threat_intel.py
 ```
+
+Only `plugins/secure-software` enters the deterministic release ZIP; the public benchmark corpus and runner remain repository-only.
 
 ## Validation
 
 ```bash
 python scripts/validate_repo.py
 python plugins/secure-software/skills/secure-software/scripts/fetch_threat_intel.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+python scripts/run_ab_benchmark.py --self-test
 python scripts/package_plugin.py
 ```
 
-The release gate checks the plugin and marketplace manifests, exact skill tree, frontmatter, relative links, bidirectional Unicode controls, test-case inventory, offline threat-intelligence regressions, and the submission ZIP layout.
+The release gate checks the plugin and marketplace manifests, exact skill tree, frontmatter, relative links, bidirectional Unicode controls, test-case inventory, all three offline script regressions, and the submission ZIP layout.
 
 See [the evaluation report](docs/EVALUATION.md) for verified scope, blind forward tests, residual limits, and the distinction between design quality and measured outcomes.
 
-The highest-leverage next work is tracked in [ROADMAP.md](ROADMAP.md): a held-out A/B benchmark, normalized evidence adapters, a dedicated reverse/binary/protocol runbook, dependency-to-deployment correlation, and a machine-readable runtime/IAM ledger.
+The shipped adapters and reproducibility suite are tracked in [ROADMAP.md](ROADMAP.md) alongside the next work: an unpublished full comparative run, deeper reverse/binary/protocol coverage, dependency-to-deployment correlation, and a machine-readable runtime/IAM ledger.
 
 ## Contributing
 

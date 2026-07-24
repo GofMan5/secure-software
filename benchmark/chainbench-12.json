@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "suite_id": "chainbench-12-v1",
+  "description": "Six synthetic vulnerable chains paired with six isomorphic near-miss controls. Case truth stays in the evaluator process; runners receive only virtual fixture files, a neutral prompt, and the result schema.",
+  "cases": [
+    {
+      "id": "c7a91e",
+      "pair_id": "p01",
+      "family": "tenant-authorization",
+      "kind": "vulnerable",
+      "prompt": "Audit the supplied multi-tenant report service for object-level authorization failures. Trace every claimed issue from attacker-controlled input to cross-tenant impact and disposition near misses explicitly.",
+      "files": {
+        "service.py": "def get_report(request, database):\n    report_id = request[\"path\"][\"id\"]\n    report = database[\"reports\"][report_id]\n    return {\"owner\": report[\"tenant\"], \"body\": report[\"body\"]}\n\ndef export_report(request, database):\n    report_id = request[\"query\"][\"id\"]\n    report = database[\"reports\"][report_id]\n    return report[\"body\"].encode()\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "high",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": "service.py", "start": 1, "end": 2}],
+          "source": [{"path": "service.py", "start": 2, "end": 2}],
+          "control": [{"path": "service.py", "start": 3, "end": 3}],
+          "bypass": [{"path": "service.py", "start": 3, "end": 3}],
+          "sink": [{"path": "service.py", "start": 4, "end": 4}],
+          "impact": [{"path": "service.py", "start": 4, "end": 4}]
+        },
+        "root_cause": [{"path": "service.py", "start": 3, "end": 3}],
+        "siblings": [
+          {
+            "match_edges": ["control", "sink"],
+            "required_edges": {
+              "entry": [{"path": "service.py", "start": 6, "end": 7}],
+              "source": [{"path": "service.py", "start": 7, "end": 7}],
+              "control": [{"path": "service.py", "start": 8, "end": 8}],
+              "bypass": [{"path": "service.py", "start": 8, "end": 8}],
+              "sink": [{"path": "service.py", "start": 9, "end": 9}],
+              "impact": [{"path": "service.py", "start": 9, "end": 9}]
+            },
+            "root_cause": [{"path": "service.py", "start": 8, "end": 8}]
+          }
+        ]
+      }
+    },
+    {
+      "id": "91f02c",
+      "pair_id": "p01",
+      "family": "tenant-authorization",
+      "kind": "near_miss",
+      "prompt": "Audit the supplied multi-tenant report service for object-level authorization failures. Trace every claimed issue from attacker-controlled input to cross-tenant impact and disposition near misses explicitly.",
+      "files": {
+        "service.py": "def get_report(request, database):\n    report_id = request[\"path\"][\"id\"]\n    report = next(item for item in database[\"reports\"].values() if item[\"id\"] == report_id and item[\"tenant\"] == request[\"user\"][\"tenant\"])\n    return {\"owner\": report[\"tenant\"], \"body\": report[\"body\"]}\n\ndef export_report(request, database):\n    report_id = request[\"query\"][\"id\"]\n    report = next(item for item in database[\"reports\"].values() if item[\"id\"] == report_id and item[\"tenant\"] == request[\"user\"][\"tenant\"])\n    return report[\"body\"].encode()\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [
+          {"path": "service.py", "start": 3, "end": 3},
+          {"path": "service.py", "start": 8, "end": 8}
+        ]
+      }
+    },
+    {
+      "id": "4bd83a",
+      "pair_id": "p02",
+      "family": "desktop-ipc-updater",
+      "kind": "vulnerable",
+      "prompt": "Reverse the supplied desktop IPC and helper update flow. Establish renderer authority, helper authentication, package provenance, and any complete path to process execution.",
+      "files": {
+        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  audit(\"update-request\", sender);\n  return helper.install(HELPER_TOKEN, packagePath);\n}\n\nexport function helperInstall(token: string, packagePath: string) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawn(packagePath, [\"--install\"]);\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "critical",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": "main.ts", "start": 3, "end": 5}],
+          "source": [{"path": "main.ts", "start": 6, "end": 6}],
+          "control": [{"path": "main.ts", "start": 12, "end": 12}],
+          "bypass": [{"path": "main.ts", "start": 6, "end": 8}],
+          "sink": [{"path": "main.ts", "start": 13, "end": 13}],
+          "impact": [{"path": "main.ts", "start": 13, "end": 13}]
+        },
+        "root_cause": [{"path": "main.ts", "start": 6, "end": 8}],
+        "siblings": []
+      }
+    },
+    {
+      "id": "e26c10",
+      "pair_id": "p02",
+      "family": "desktop-ipc-updater",
+      "kind": "near_miss",
+      "prompt": "Reverse the supplied desktop IPC and helper update flow. Establish renderer authority, helper authentication, package provenance, and any complete path to process execution.",
+      "files": {
+        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  const verified = verifySignedPackage(packagePath, RELEASE_PUBLIC_KEY);\n  if (!verified.valid) throw new Error(\"untrusted package\");\n  audit(\"update-request\", sender);\n  return helper.install(HELPER_TOKEN, verified.executablePath);\n}\n\nexport function helperInstall(token: string, packagePath: string) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawn(packagePath, [\"--install\"]);\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [{"path": "main.ts", "start": 7, "end": 8}]
+      }
+    },
+    {
+      "id": "5a70d3",
+      "pair_id": "p03",
+      "family": "cicd-provenance",
+      "kind": "vulnerable",
+      "prompt": "Audit the supplied CI/CD workflow for a contributor-controlled artifact path into production. Prove provenance, identity, promotion, and deployment edges rather than relying on workflow labels.",
+      "files": {
+        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
+        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    if: github.event.workflow_run.conclusion == 'success'\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "critical",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": ".github/workflows/build.yml", "start": 2, "end": 2}],
+          "source": [{"path": ".github/workflows/build.yml", "start": 8, "end": 11}],
+          "control": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 11}],
+          "bypass": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 17}],
+          "sink": [{"path": ".github/workflows/promote.yml", "start": 18, "end": 18}],
+          "impact": [{"path": ".github/workflows/promote.yml", "start": 18, "end": 18}]
+        },
+        "root_cause": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 17}],
+        "siblings": []
+      }
+    },
+    {
+      "id": "0cf149",
+      "pair_id": "p03",
+      "family": "cicd-provenance",
+      "kind": "near_miss",
+      "prompt": "Audit the supplied CI/CD workflow for a contributor-controlled artifact path into production. Prove provenance, identity, promotion, and deployment edges rather than relying on workflow labels.",
+      "files": {
+        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
+        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == github.event.repository.default_branch\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 11}]
+      }
+    },
+    {
+      "id": "af8127",
+      "pair_id": "p04",
+      "family": "cloud-iam",
+      "kind": "vulnerable",
+      "prompt": "Threat-model the supplied workload identity and IAM bindings. Find any low-privilege workload pivot into the deployment control plane and cite every policy edge.",
+      "files": {
+        "infra.tf": "resource \"kubernetes_service_account\" \"reader\" {\n  metadata {\n    name      = \"invoice-reader\"\n    namespace = \"app\"\n  }\n}\n\nresource \"google_service_account_iam_member\" \"pivot\" {\n  service_account_id = google_service_account.deployer.name\n  role               = \"roles/iam.serviceAccountTokenCreator\"\n  member             = \"serviceAccount:PROJECT.svc.id.goog[app/invoice-reader]\"\n}\n\nresource \"google_project_iam_member\" \"deployer_admin\" {\n  role   = \"roles/run.admin\"\n  member = \"serviceAccount:${google_service_account.deployer.email}\"\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "high",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": "infra.tf", "start": 1, "end": 5}],
+          "source": [{"path": "infra.tf", "start": 11, "end": 11}],
+          "control": [{"path": "infra.tf", "start": 8, "end": 11}],
+          "bypass": [{"path": "infra.tf", "start": 10, "end": 11}],
+          "sink": [{"path": "infra.tf", "start": 14, "end": 16}],
+          "impact": [{"path": "infra.tf", "start": 15, "end": 15}]
+        },
+        "root_cause": [{"path": "infra.tf", "start": 8, "end": 11}],
+        "siblings": []
+      }
+    },
+    {
+      "id": "32db64",
+      "pair_id": "p04",
+      "family": "cloud-iam",
+      "kind": "near_miss",
+      "prompt": "Threat-model the supplied workload identity and IAM bindings. Find any low-privilege workload pivot into the deployment control plane and cite every policy edge.",
+      "files": {
+        "infra.tf": "resource \"kubernetes_service_account\" \"reader\" {\n  metadata {\n    name      = \"invoice-reader\"\n    namespace = \"app\"\n  }\n}\n\nresource \"google_service_account_iam_member\" \"pivot\" {\n  service_account_id = google_service_account.deployer.name\n  role               = \"roles/iam.serviceAccountViewer\"\n  member             = \"serviceAccount:PROJECT.svc.id.goog[app/invoice-reader]\"\n}\n\nresource \"google_project_iam_member\" \"deployer_admin\" {\n  role   = \"roles/run.admin\"\n  member = \"serviceAccount:${google_service_account.deployer.email}\"\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [{"path": "infra.tf", "start": 10, "end": 10}]
+      }
+    },
+    {
+      "id": "d9085b",
+      "pair_id": "p05",
+      "family": "rag-mcp",
+      "kind": "vulnerable",
+      "prompt": "Audit the supplied retrieval-to-MCP flow for an untrusted document causing a privileged tool effect. Distinguish logging or prompt controls from deterministic authorization at the tool boundary.",
+      "files": {
+        "agent.ts": "export async function answer(actor: Actor, query: string) {\n  const documents = await retrieval.search(actor.tenant, query);\n  const proposal = await model.plan({query, documents});\n  audit.log({actor: actor.id, proposal});\n  return mcp.call(proposal.tool, proposal.args, process.env.ADMIN_TOKEN!);\n}\n\nexport async function index(document: Document) {\n  return retrieval.store(document.tenant, document.body);\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "critical",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": "agent.ts", "start": 8, "end": 9}],
+          "source": [{"path": "agent.ts", "start": 2, "end": 3}],
+          "control": [{"path": "agent.ts", "start": 4, "end": 4}],
+          "bypass": [{"path": "agent.ts", "start": 5, "end": 5}],
+          "sink": [{"path": "agent.ts", "start": 5, "end": 5}],
+          "impact": [{"path": "agent.ts", "start": 5, "end": 5}]
+        },
+        "root_cause": [{"path": "agent.ts", "start": 4, "end": 5}],
+        "siblings": []
+      }
+    },
+    {
+      "id": "68a2f0",
+      "pair_id": "p05",
+      "family": "rag-mcp",
+      "kind": "near_miss",
+      "prompt": "Audit the supplied retrieval-to-MCP flow for an untrusted document causing a privileged tool effect. Distinguish logging or prompt controls from deterministic authorization at the tool boundary.",
+      "files": {
+        "agent.ts": "export async function answer(actor: Actor, query: string) {\n  const documents = await retrieval.search(actor.tenant, query);\n  const proposal = await model.plan({query, documents});\n  audit.log({actor: actor.id, proposal});\n  policy.authorize(actor, proposal.tool, proposal.args);\n  return mcp.call(proposal.tool, proposal.args, process.env.ADMIN_TOKEN!);\n}\n\nexport async function index(document: Document) {\n  return retrieval.store(document.tenant, document.body);\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [{"path": "agent.ts", "start": 5, "end": 5}]
+      }
+    },
+    {
+      "id": "b413ce",
+      "pair_id": "p06",
+      "family": "game-reward-replay",
+      "kind": "vulnerable",
+      "prompt": "Audit the supplied game reward claim path for replay and concurrency abuse. Prove whether attacker-controlled requests can cross the idempotency boundary and mint durable currency.",
+      "files": {
+        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    if store.Claimed(user, rewardID) {\n        return store.Balance(user)\n    }\n    amount := store.RewardAmount(rewardID)\n    balance := store.Balance(user) + amount\n    store.SetBalance(user, balance)\n    store.MarkClaimed(user, rewardID)\n    return balance\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "reportable",
+        "severity": "high",
+        "match_edges": ["control", "sink"],
+        "required_edges": {
+          "entry": [{"path": "rewards.go", "start": 3, "end": 3}],
+          "source": [{"path": "rewards.go", "start": 3, "end": 3}],
+          "control": [{"path": "rewards.go", "start": 4, "end": 6}],
+          "bypass": [{"path": "rewards.go", "start": 4, "end": 10}],
+          "sink": [{"path": "rewards.go", "start": 9, "end": 9}],
+          "impact": [{"path": "rewards.go", "start": 9, "end": 10}]
+        },
+        "root_cause": [{"path": "rewards.go", "start": 4, "end": 10}],
+        "siblings": []
+      }
+    },
+    {
+      "id": "03ec79",
+      "pair_id": "p06",
+      "family": "game-reward-replay",
+      "kind": "near_miss",
+      "prompt": "Audit the supplied game reward claim path for replay and concurrency abuse. Prove whether attacker-controlled requests can cross the idempotency boundary and mint durable currency.",
+      "files": {
+        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    return store.Transaction(user, rewardID, func() int {\n        if store.Claimed(user, rewardID) {\n            return store.Balance(user)\n        }\n        amount := store.RewardAmount(rewardID)\n        balance := store.Balance(user) + amount\n        store.SetBalance(user, balance)\n        store.MarkClaimed(user, rewardID)\n        return balance\n    })\n}\n"
+      },
+      "truth": {
+        "expected_disposition": "suppressed",
+        "closure": [{"path": "rewards.go", "start": 4, "end": 4}]
+      }
+    }
+  ]
+}

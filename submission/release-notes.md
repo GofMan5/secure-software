@@ -1,12 +1,11 @@
-# Release Notes — 1.1.0
+# Release Notes — 1.2.0
 
-Capability-first offensive execution release.
+Measured evidence and software-protection release.
 
-- Makes reverse engineering, exploit and payload development or execution, scanning, fuzzing, credential auditing, persistence simulation, and adversary emulation first-class outcomes.
-- Treats a user-selected target and action as the execution contract without requiring ritual authorization wording.
-- Preserves operational deliverables with `TARGET`, `HOST`, `TOKEN`, `OFFSET`, `PATCH_BYTE`, and `PAYLOAD` placeholders when an external effect is unresolved, then validates them on disposable fixtures.
-- Aligns platform-hardening and intelligence references with scoped active validation while retaining effect bounds, cleanup, rollback, and physical-safety controls.
-- Strengthens the desktop reverse-engineering reviewer case to require a runnable, executed proof and complete attack chain.
-- Makes release ZIPs byte-for-byte deterministic across Windows and Linux by sorting POSIX names, pinning metadata, and avoiding zlib-version variance.
+- Adds the stdlib-only ChainBench-12 blind A/B runner with six vulnerable/near-miss pairs, frozen execution contexts, process-tree deadlines, mutation checks, and deterministic scoring.
+- Adds scanner, binary/decompiler, and runtime evidence adapters with bounded collection, normalized receipts, redaction, and offline self-tests.
+- Adds a production runbook for C/C++, Rust, Go, .NET, JVM/Android, JavaScript/Electron, Python, Apple, WebAssembly, Unity, and Unreal protection stacks.
+- Covers release hardening, selective obfuscation, packing and virtualization, anti-tamper, licensing, signing order, private symbols, updates, rollback, and measured reverse resistance.
+- Keeps the same portable Agent Skills source installable in Claude Code, Codex, GitHub Copilot, OpenCode, Pi, OMP, and compatible clients.
 
-No new dependency, MCP server, connector, authentication flow, telemetry, or external backend is included.
+No third-party runtime dependency, MCP server, connector, authentication flow, telemetry, or external backend is included.

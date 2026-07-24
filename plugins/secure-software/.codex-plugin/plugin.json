@@ -1,6 +1,6 @@
 {
   "name": "secure-software",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Offensive and defensive, evidence-driven security engineering for software and infrastructure.",
   "author": {
     "name": "Maksim (GofMan5)",
@@ -17,6 +17,8 @@
     "threat-modeling",
     "security-audit",
     "reverse-engineering",
+    "software-protection",
+    "obfuscation",
     "offensive-security",
     "exploit-development",
     "mitre-attack"
@@ -25,7 +27,7 @@
   "interface": {
     "displayName": "Secure Software",
     "shortDescription": "Offensive security engineering",
-    "longDescription": "Attack, emulate, reverse, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow produces working exploit proofs, prioritizes reachable attack chains and explicit evidence, and applies root-boundary remediation when requested.",
+    "longDescription": "Attack, emulate, reverse, protect, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow produces working proofs, prioritizes reachable attack chains and explicit evidence, and applies measured software protection or root-boundary remediation when requested.",
     "developerName": "GofMan5",
     "category": "Security",
     "capabilities": [
@@ -34,6 +36,7 @@
       "Offensive exploit validation",
       "Attack-chain validation",
       "Reverse engineering",
+      "Software protection and anti-tamper",
       "Cloud, IAM, and CI/CD hardening",
       "Evidence-backed remediation"
     ],
@@ -43,7 +46,7 @@
     "defaultPrompt": [
       "Reverse this supplied target, build and run the smallest working exploit proof, and trace the full attack chain.",
       "Run a deep security audit and validate findings from entry point to impact.",
-      "Fix the validated finding at the narrowest shared trust boundary."
+      "Design and verify a stable cross-language protection pipeline for this shipped application."
     ],
     "brandColor": "#00897B",
     "composerIcon": "./assets/icon.png",

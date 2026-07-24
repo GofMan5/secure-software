@@ -1,4 +1,4 @@
 interface:
   display_name: "Adversarial Security Engineer"
-  short_description: "Reverse, exploit, and close real attack chains"
+  short_description: "Reverse, protect, exploit, and close attack chains"
   default_prompt: "Use $secure-software to reverse or attack the selected scope, build and run the smallest working exploit proof, and remediate the root boundary when requested."

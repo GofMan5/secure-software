@@ -16,6 +16,10 @@ SKILL = PLUGIN / "skills" / "secure-software"
 MANIFEST = PLUGIN / ".codex-plugin" / "plugin.json"
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 TEST_CASES = ROOT / "submission" / "test-cases.json"
+CHANGELOG = ROOT / "CHANGELOG.md"
+CITATION = ROOT / "CITATION.cff"
+LISTING = ROOT / "submission" / "listing.md"
+RELEASE_NOTES = ROOT / "submission" / "release-notes.md"
 SEMVER = re.compile(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?")
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 BIDI = re.compile("[\u202a-\u202e\u2066-\u2069]")
@@ -23,8 +27,11 @@ EXPECTED_SKILL_FILES = {
     "SKILL.md",
     "agents/openai.yaml",
     "references/attack-surface.md",
+    "references/evidence-adapters.md",
     "references/intelligence-sources.md",
     "references/platform-hardening.md",
+    "references/software-protection.md",
+    "scripts/evidence_adapter.py",
     "scripts/fetch_threat_intel.py",
 }
 
@@ -63,6 +70,29 @@ def validate_manifest() -> None:
         require(isinstance(value, str) and value.startswith("./"), f"{field} must be plugin-relative")
         target = (PLUGIN / value).resolve()
         require(target.is_relative_to(PLUGIN.resolve()) and target.is_file(), f"missing {field}: {value}")
+
+
+def validate_release_metadata() -> None:
+    manifest = load_json(MANIFEST)
+    version = manifest["version"]
+    interface = manifest["interface"]
+    citation = CITATION.read_text(encoding="utf-8")
+    release_notes = RELEASE_NOTES.read_text(encoding="utf-8")
+    changelog = CHANGELOG.read_text(encoding="utf-8")
+    listing = LISTING.read_text(encoding="utf-8")
+    require(re.search(rf"(?m)^version:\s*{re.escape(version)}\s*$", citation) is not None, "citation version mismatch")
+    require(release_notes.startswith(f"# Release Notes — {version}\n"), "release-notes version mismatch")
+    require(re.search(rf"(?m)^## {re.escape(version)} - \d{{4}}-\d{{2}}-\d{{2}}$", changelog) is not None,
+            "changelog version mismatch")
+    for heading, value in (
+        ("Display name", interface["displayName"]),
+        ("Short description", interface["shortDescription"]),
+        ("Developer", interface["developerName"]),
+        ("Category", interface["category"]),
+    ):
+        require(f"## {heading}\n\n{value}\n" in listing, f"listing {heading.lower()} mismatch")
+    for index, prompt in enumerate(interface["defaultPrompt"], 1):
+        require(f"{index}. {prompt}\n" in listing, f"listing starter prompt {index} mismatch")
 
 
 def validate_marketplace() -> None:
@@ -122,20 +152,25 @@ def validate_submission_cases() -> None:
         require(all(isinstance(case.get(key), str) and case[key].strip() for key in ("id", "prompt", "expected_behavior", "expected_result")), f"incomplete test case: {case}")
 
 
-def run_self_test() -> None:
-    script = SKILL / "scripts" / "fetch_threat_intel.py"
+def run_self_tests() -> None:
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-    subprocess.run([sys.executable, "-B", str(script), "--self-test"], check=True, cwd=ROOT, env=env)
+    for script in (
+        SKILL / "scripts" / "fetch_threat_intel.py",
+        SKILL / "scripts" / "evidence_adapter.py",
+        ROOT / "scripts" / "run_ab_benchmark.py",
+    ):
+        subprocess.run([sys.executable, "-B", str(script), "--self-test"], check=True, cwd=ROOT, env=env)
 
 
 def main() -> int:
     validate_manifest()
+    validate_release_metadata()
     validate_marketplace()
     validate_skill()
     validate_markdown_links()
     validate_text_and_artifacts()
     validate_submission_cases()
-    run_self_test()
+    run_self_tests()
     print("repository validation: ok")
     return 0
 

@@ -2,6 +2,13 @@
 
 All notable changes follow [Semantic Versioning](https://semver.org/).
 
+## 1.2.0 - 2026-07-24
+
+- Added the stdlib-only ChainBench-12 blind A/B runner with six vulnerable/near-miss pairs, reproducible randomization, frozen execution-context receipts, process-tree deadlines, mutation checks, and deterministic evidence metrics.
+- Added scanner, binary/decompiler, and runtime evidence adapters with bounded subprocesses, normalized receipts, redaction, and offline self-tests.
+- Added a cross-language software-protection runbook for stable release hardening, obfuscation, packing/virtualization, anti-tamper, licensing, signing, and measured reverse-resistance checks.
+- Integrated evidence collection and benchmark validation into the skill, repository gate, and public documentation.
+
 ## 1.1.0 - 2026-07-24
 
 - Made offensive testing, reverse engineering, exploit and payload execution, fuzzing, scanning, credential auditing, persistence simulation, and adversary emulation first-class skill outcomes.
