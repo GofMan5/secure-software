@@ -24,6 +24,7 @@ Proposed release gate: require three complete, context-bound runs per case and v
 
 - Thin read-only adapters for SARIF, npm audit, cargo-audit, binary metadata and bounded strings, optional decompiler commands, HTTP/TLS probes, Docker client/server metadata, and Kubernetes version/effective-permission evidence.
 - Normalized receipts with adapter/tool version, exact scope and argv, exit state, timeout/truncation, raw digest, redaction, observations, and errors.
+- Crash/fuzz receipts with target/input/minimized digests, repeated reproduction, sanitizer/fault normalization, stack fingerprints, and minimized-input verification.
 - Scanner and tool output remains candidate evidence rather than an automatic finding.
 
 ## Shipped — Cross-language software protection
@@ -31,21 +32,30 @@ Proposed release gate: require three complete, context-bound runs per case and v
 - Stable baseline and high-assurance choices for native, Rust, Go, .NET, JVM/Android, JavaScript/Electron, Python, Apple, WebAssembly, and game/mobile artifacts.
 - Release hardening, selective source/IR/string obfuscation, post-link packing or virtualization, anti-debug/tamper, licensing, integrity, signing order, private symbols, and rollback.
 - Before/after reverse-resistance, performance, startup, crash-symbol, reproducibility, update, and AV/EDR validation through real tools and normalized receipts.
+- One stdlib Protection Lab for file, directory, and ZIP-like baseline/protected artifacts with hashed canaries, source-map leakage, explicit tool gates, thresholds, and `ship`/`reject`/`deferred` receipts.
 
-## Next — Reverse and protocol depth
+## Shipped — Reverse and protocol execution
 
-- Add a conditionally loaded PE/ELF/Mach-O and protocol runbook.
-- Cover signatures, mitigations, imports/exports, symbols and offsets, decompiler evidence, state machines, differential replay, fuzzing, crash minimization, and sanitizer evidence.
+- Conditionally loaded PE/ELF/Mach-O, managed/mobile, Wasm, game, firmware, and protocol runbook.
+- Signatures, mitigations, imports/exports, symbols and offsets, static/dynamic reconstruction, state machines, differential replay, fuzzing, crash minimization, exploitability, and patch verification.
+- Installed decompilers, debuggers, protocol tools, and fuzzers remain external engines wrapped by bounded receipts.
 
-## Next — Dependency to deployment
+## Shipped — Runtime, cloud, IAM, and deployment ledger foundation
+
+- One validated JSONL contract for assets, principals, effective permissions, conditions, network edges, components, advisories, deployments, source/control/sink proof, counterevidence, and disposition.
+- Deterministic bounded path search over active edges; unknown edges are opt-in and remain marked.
+- Contiguous-chain validation prevents dangling controls, missing nodes, and reportable paths with an unproven edge.
+
+## Next — Dependency intelligence correlation
 
 - Resolve PURL and SBOM identities against OSV, vendor advisories, CVE/CNA, GHSA, VEX, KEV, and EPSS.
 - Preserve affected-range and backport conflicts with source provenance.
-- Keep deployed reachability and impact as a separate validation phase.
+- Feed candidates into the shipped ledger while keeping deployed reachability and impact as a separate validation phase.
 
-## Next — Runtime, cloud, and IAM ledger
+## Next — Provider and application collectors
 
-- Define one JSONL contract for assets, principals, effective permissions, network edges, source/control/sink proof, counterevidence, and disposition.
-- Add a validator so non-repository assessments receive the same auditable closure as repository scans.
+- Add thin AWS, Azure, GCP, Kubernetes, and AD collectors that emit the existing ledger contract without bundling cloud SDKs.
+- Add a request-matrix harness for proxy/upstream parsing, tenant/session/role combinations, browser-origin controls, GraphQL/gRPC/WebSocket/webhooks, replay, idempotency, and race differentials.
+- Add artifact-specific profiles for Ghidra, Rizin, ILSpy, JADX/apktool, Frida, platform signature tools, Wasm, Electron, Unity, and Unreal only where normalized parsing adds value beyond custom argv.
 
 Contributions should start from a failing fixture or demonstrated workflow gap. See [CONTRIBUTING.md](CONTRIBUTING.md).

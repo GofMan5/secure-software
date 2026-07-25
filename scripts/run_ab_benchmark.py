@@ -1283,7 +1283,7 @@ def score_variant(entries: list[dict[str, Any]], cases: dict[str, dict[str, Any]
         match_edges = case["truth"]["match_edges"]
         for index, candidate in enumerate(reportable):
             edges = candidate_edge_matches(candidate, case)
-            matched = all(edges[edge] for edge in match_edges)
+            matched = all(edges[edge] for edge in match_edges) and candidate_root_matches(candidate, case)
             complete = all(edges.values())
             scored.append((index, matched, complete, candidate))
         matches = [item for item in scored if item[1]]

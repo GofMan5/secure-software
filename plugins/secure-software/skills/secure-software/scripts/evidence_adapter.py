@@ -27,12 +27,15 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-ADAPTER_VERSION = "1.0"
+ADAPTER_VERSION = "1.1"
 DEFAULT_TIMEOUT = 120.0
 DEFAULT_CAPTURE_BYTES = 1024 * 1024
 MAX_CAPTURE_BYTES = 64 * 1024 * 1024
+MAX_TOTAL_CAPTURE_BYTES = 256 * 1024 * 1024
+MAX_TOTAL_TIMEOUT_SECONDS = 3600.0
 MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
 MAX_OBSERVATIONS = 500
+MAX_MATCH_LENGTH = 500
 SECRET_NAME = re.compile(
     r"(?i)(?:token|secret|pass(?:word)?|api[_-]?key|auth|cookie|credential|connection[_-]?string|"
     r"(?:x[_-]?(?:amz|goog)[_-]?)?signature|sig|sas)"
@@ -53,6 +56,15 @@ SECRET_VALUE_PATTERNS = (
     re.compile(r"-----BEGIN [^-\r\n]*PRIVATE KEY-----.*?-----END [^-\r\n]*PRIVATE KEY-----", re.DOTALL),
 )
 URL_IN_TEXT = re.compile(r"https?://[^\s\"'<>]+", re.IGNORECASE)
+SANITIZER_IN_TEXT = re.compile(
+    r"(?i)\b(AddressSanitizer|LeakSanitizer|MemorySanitizer|ThreadSanitizer|UndefinedBehaviorSanitizer|"
+    r"HWAddressSanitizer|libFuzzer|runtime error)\b"
+)
+FAULT_IN_TEXT = re.compile(
+    r"(?i)\b(segmentation fault|access violation|stack overflow|heap corruption|abort(?:ed)?|"
+    r"illegal instruction|bus error|assertion failed|panic|unhandled exception|fatal error)\b"
+)
+STACK_LINE = re.compile(r"^\s*(?:#\d+\b|at\s+\S+|[A-Za-z0-9_.-]+![A-Za-z0-9_.$<>~+-]+)")
 SAFE_HTTP_HEADERS = {
     "age", "allow", "cache-control", "content-length", "content-security-policy",
     "content-type", "date", "etag", "expires", "last-modified", "location", "server",
@@ -63,6 +75,15 @@ SAFE_HTTP_HEADERS = {
 
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def validate_run_budget(run_count: int, timeout: float, capture_bytes: int) -> None:
+    if type(run_count) is not int or run_count < 0:
+        raise ValueError("run count must be a non-negative integer")
+    if run_count * timeout > MAX_TOTAL_TIMEOUT_SECONDS:
+        raise ValueError(f"run timeout budget exceeds {MAX_TOTAL_TIMEOUT_SECONDS:g} seconds")
+    if run_count * capture_bytes * 2 > MAX_TOTAL_CAPTURE_BYTES:
+        raise ValueError(f"stdout/stderr capture budget exceeds {MAX_TOTAL_CAPTURE_BYTES} bytes")
 
 
 def bounded(value: Any, limit: int = 2_000) -> str | None:
@@ -499,6 +520,13 @@ def artifact(path: Path, role: str) -> dict[str, Any]:
     }
 
 
+def artifact_changed(item: dict[str, Any], path: Path) -> bool:
+    try:
+        return path.stat().st_size != item["size_bytes"] or sha256_file(path) != item["sha256"]
+    except OSError:
+        return True
+
+
 def lead(source: str, identifier: Any = None, title: Any = None, severity: Any = None,
          location: Any = None, package_name: Any = None, url: Any = None) -> dict[str, Any]:
     item = {"type": "candidate_lead", "source": source}
@@ -749,17 +777,17 @@ def auto_scanners(scope: Path) -> list[str]:
     return selected
 
 
-def binary_metadata(path: Path, string_bytes: int, string_min: int, string_limit: int) -> tuple[dict[str, Any], dict[str, Any]]:
-    with path.open("rb") as handle:
-        header = handle.read(4096)
-        handle.seek(0)
-        sample = handle.read(string_bytes)
+def binary_metadata_stream(handle: Any, total_size: int, string_bytes: int, string_min: int,
+                           string_limit: int) -> tuple[dict[str, Any], dict[str, Any]]:
+    handle.seek(0)
+    header = handle.read(4096)
+    handle.seek(0)
+    sample = handle.read(string_bytes)
     info: dict[str, Any] = {"type": "binary_metadata", "format": "unknown"}
     if header.startswith(b"MZ") and len(header) >= 64:
         pe_offset = struct.unpack_from("<I", header, 0x3C)[0]
-        with path.open("rb") as handle:
-            handle.seek(pe_offset)
-            pe = handle.read(256)
+        handle.seek(pe_offset)
+        pe = handle.read(256)
         if pe.startswith(b"PE\0\0") and len(pe) >= 26:
             machine, sections, timestamp = struct.unpack_from("<HHI", pe, 4)
             info.update(format="PE", architecture={0x14C: "x86", 0x8664: "x86_64", 0x1C4: "arm", 0xAA64: "arm64"}.get(machine, hex(machine)),
@@ -793,9 +821,15 @@ def binary_metadata(path: Path, string_bytes: int, string_min: int, string_limit
             value = match.group().decode("utf-16le" if encoding == "utf-16le" else "ascii", errors="replace")
             values.append({"offset": match.start(), "encoding": encoding, "value": bounded(value, 500)})
     values.sort(key=lambda item: item["offset"])
-    strings = {"type": "bounded_strings", "scanned_bytes": len(sample), "input_truncated": path.stat().st_size > len(sample),
+    strings = {"type": "bounded_strings", "scanned_bytes": len(sample), "input_truncated": total_size > len(sample),
                "limit": string_limit, "truncated": input_truncated or len(values) > string_limit, "values": values[:string_limit]}
     return info, strings
+
+
+def binary_metadata(path: Path, string_bytes: int, string_min: int, string_limit: int) -> tuple[dict[str, Any], dict[str, Any]]:
+    with path.open("rb") as handle:
+        return binary_metadata_stream(handle, os.fstat(handle.fileno()).st_size,
+                                      string_bytes, string_min, string_limit)
 
 
 def binary_command(label: str, target: Path, minimum: int) -> list[str]:
@@ -1000,6 +1034,124 @@ def collect_binary(receipt: dict[str, Any], args: argparse.Namespace, env: dict[
         add_run(receipt, Path(args.command[0]).stem, args.command, target.parent, env, args, secrets)
 
 
+def normalize_stack_line(value: str) -> str:
+    value = re.sub(r"0x[0-9a-fA-F]+", "0xADDR", value.strip())
+    value = re.sub(r"\+0x[0-9a-fA-F]+", "+0xOFF", value)
+    value = re.sub(r"(?<=:)(?:\d+)(?::\d+)?\b", "LINE", value)
+    return bounded(value, 500) or ""
+
+
+def crash_metadata(run: dict[str, Any], match: str | None, success_exit_codes: set[int]) -> dict[str, Any]:
+    text = "\n".join((run["stdout"]["preview"], run["stderr"]["preview"]))
+    sanitizer_match = SANITIZER_IN_TEXT.search(text)
+    fault_match = FAULT_IN_TEXT.search(text)
+    stack = [normalize_stack_line(line) for line in text.splitlines() if STACK_LINE.search(line)][:50]
+    if not stack:
+        stack = [normalize_stack_line(line) for line in text.splitlines() if line.strip()][:20]
+    fingerprint_basis = "\n".join(stack)
+    opaque_digests = [
+        f"{name}-sha256:{run[name]['sha256']}"
+        for name in ("stdout", "stderr")
+        if run[name]["truncated"] or str(run[name]["preview"]).startswith("<omitted:")
+    ]
+    if opaque_digests:
+        fingerprint_basis = "\n".join(filter(None, (fingerprint_basis, *opaque_digests)))
+    if match is not None:
+        triggered = match.casefold() in text.casefold() and not run["timed_out"]
+        trigger_basis = "match" if triggered else None
+    elif sanitizer_match or fault_match:
+        triggered = not run["timed_out"] and run["exit_code"] not in success_exit_codes
+        trigger_basis = "sanitizer_or_fault" if triggered else None
+    else:
+        triggered = not run["timed_out"] and run["exit_code"] not in success_exit_codes
+        trigger_basis = "abnormal_exit" if triggered else None
+    return {
+        "triggered": triggered,
+        "trigger_basis": trigger_basis,
+        "timed_out": run["timed_out"],
+        "exit_code": run["exit_code"],
+        "sanitizer": sanitizer_match.group(1) if sanitizer_match else None,
+        "fault": fault_match.group(1).lower() if fault_match else None,
+        "stack_fingerprint": hashlib.sha256(fingerprint_basis.encode("utf-8")).hexdigest() if fingerprint_basis else None,
+        "stack_lines": stack,
+        "output_truncated": run["stdout"]["truncated"] or run["stderr"]["truncated"],
+    }
+
+
+def crash_argv(command: list[str], target: Path, input_path: Path) -> list[str]:
+    if not any("{input}" in item for item in command):
+        raise ValueError("crash command must contain an {input} placeholder")
+    return [item.replace("{target}", str(target)).replace("{input}", str(input_path)) for item in command]
+
+
+def collect_crash(receipt: dict[str, Any], args: argparse.Namespace, env: dict[str, str], secrets: list[str]) -> None:
+    target = Path(args.target).resolve()
+    crashing_input = Path(args.input).resolve()
+    minimized = Path(args.minimized).resolve() if args.minimized else None
+    if not target.is_file():
+        raise ValueError(f"crash target is not a file: {target}")
+    for role, path in (("crashing_input", crashing_input), ("minimized_input", minimized)):
+        if path is None:
+            continue
+        if not path.is_file():
+            raise ValueError(f"{role} is not a file: {path}")
+        if path.stat().st_size > MAX_ARTIFACT_BYTES:
+            raise ValueError(f"{role} exceeds {MAX_ARTIFACT_BYTES} bytes: {path}")
+    if not args.command:
+        raise ValueError("crash collection requires custom argv after --")
+    if args.match and len(args.match) > MAX_MATCH_LENGTH:
+        raise ValueError(f"--match exceeds {MAX_MATCH_LENGTH} characters")
+    match = args.match
+    success_exit_codes = set(args.success_exit or [0])
+    validate_run_budget(args.attempts + int(minimized is not None), args.timeout, args.max_output_bytes)
+    receipt["scope"] = str(target)
+    target_artifact = artifact(target, "target")
+    input_artifact = artifact(crashing_input, "crashing_input")
+    receipt["artifacts"].append(target_artifact)
+    receipt["artifacts"].append(input_artifact)
+    minimized_artifact = None
+    if minimized:
+        minimized_artifact = artifact(minimized, "minimized_input")
+        receipt["artifacts"].append(minimized_artifact)
+    attempts: list[dict[str, Any]] = []
+    label = Path(args.command[0]).stem
+    for index in range(args.attempts):
+        run = add_run(receipt, label, crash_argv(args.command, target, crashing_input), target.parent, env, args, secrets)
+        if run is None:
+            attempts.append({"attempt": index + 1, "triggered": False, "collection_failed": True})
+            continue
+        attempts.append({"attempt": index + 1, **crash_metadata(run, match, success_exit_codes)})
+    successes = sum(bool(item.get("triggered")) for item in attempts)
+    fingerprints = [item["stack_fingerprint"] for item in attempts if item.get("triggered") and item.get("stack_fingerprint")]
+    observation: dict[str, Any] = {
+        "type": "crash_reproduction",
+        "attempts": args.attempts,
+        "successes": successes,
+        "stable_fingerprint": successes == args.attempts and len(fingerprints) == successes and len(set(fingerprints)) == 1,
+        "fingerprints": sorted(set(fingerprints)),
+        "results": attempts,
+        "match": bounded(args.match, 500) if args.match else None,
+        "success_exit_codes": sorted(success_exit_codes),
+    }
+    if minimized:
+        run = add_run(receipt, label, crash_argv(args.command, target, minimized), target.parent, env, args, secrets)
+        if run is not None:
+            metadata = crash_metadata(run, match, success_exit_codes)
+            observation["minimized_verification"] = {
+                **metadata,
+                "matches_primary_fingerprint": bool(
+                    metadata["triggered"] and metadata["stack_fingerprint"]
+                    and metadata["stack_fingerprint"] in set(fingerprints)
+                ),
+            }
+    for item, path in ((target_artifact, target), (input_artifact, crashing_input),
+                       (minimized_artifact, minimized)):
+        if item is not None and path is not None and artifact_changed(item, path):
+            receipt["errors"].append({"stage": "stability", "role": item["role"],
+                                      "message": "artifact changed during crash reproduction"})
+    receipt["observations"].append(observation)
+
+
 def collect_runtime(receipt: dict[str, Any], args: argparse.Namespace, env: dict[str, str], secrets: list[str]) -> None:
     receipt["scope"] = "runtime"
     for url in args.http:
@@ -1088,6 +1240,19 @@ def apply_disclosure_policy(receipt: dict[str, Any], include_previews: bool,
                 for item in observation.get("values", [])
                 if isinstance(item, dict)
             ]
+    if not include_previews:
+        for observation in receipt.get("observations", []):
+            if not isinstance(observation, dict) or observation.get("type") != "crash_reproduction":
+                continue
+            results = list(observation.get("results", []))
+            minimized = observation.get("minimized_verification")
+            if isinstance(minimized, dict):
+                results.append(minimized)
+            for result in results:
+                if not isinstance(result, dict) or not isinstance(result.get("stack_lines"), list):
+                    continue
+                result["stack_line_count"] = len(result["stack_lines"])
+                result["stack_lines"] = [OMITTED_PREVIEW] * len(result["stack_lines"])
 
 
 def self_test() -> None:
@@ -1200,6 +1365,68 @@ def self_test() -> None:
         binary.write_bytes(b"\0".join(f"string-{index}".encode() for index in range(1000)))
         _, bounded_strings = binary_metadata(binary, binary.stat().st_size, 4, 10)
         assert bounded_strings["truncated"] and len(bounded_strings["values"]) == 10
+        crashing_input = root / "crash.bin"
+        minimized_input = root / "min.bin"
+        crashing_input.write_bytes(b"PREFIX-CRASH-SUFFIX")
+        minimized_input.write_bytes(b"CRASH")
+        crash_code = (
+            "import pathlib,sys;data=pathlib.Path(sys.argv[1]).read_bytes();"
+            "print('AddressSanitizer: heap-buffer-overflow',file=sys.stderr);"
+            "print('#0 0x1234 in parse TARGET.c:10:2',file=sys.stderr);"
+            "sys.exit(1 if b'CRASH' in data else 0)"
+        )
+        crash_args = argparse.Namespace(
+            target=sys.executable, input=str(crashing_input), minimized=str(minimized_input), attempts=2,
+            match=None, success_exit=[0], command=[sys.executable, "-c", crash_code, "{input}"],
+            timeout=5.0, max_output_bytes=4096,
+        )
+        crash_receipt: dict[str, Any] = {
+            "scope": None, "artifacts": [], "runs": [], "observations": [], "errors": [],
+        }
+        collect_crash(crash_receipt, crash_args, env, secrets)
+        crash_observation = crash_receipt["observations"][0]
+        assert crash_observation["successes"] == 2 and crash_observation["stable_fingerprint"]
+        assert crash_observation["results"][0]["sanitizer"] == "AddressSanitizer"
+        assert crash_observation["minimized_verification"]["matches_primary_fingerprint"]
+        apply_disclosure_policy(crash_receipt, False, False)
+        assert set(crash_observation["results"][0]["stack_lines"]) == {OMITTED_PREVIEW}
+        assert crash_observation["results"][0]["stack_line_count"] == 1
+        truncated_run = {
+            "timed_out": False, "exit_code": 1,
+            "stdout": {"preview": "<omitted: truncated stream>", "truncated": True, "sha256": "a" * 64},
+            "stderr": {"preview": "", "truncated": False, "sha256": "b" * 64},
+        }
+        first_fingerprint = crash_metadata(truncated_run, None, {0})["stack_fingerprint"]
+        truncated_run["stdout"]["sha256"] = "c" * 64
+        assert crash_metadata(truncated_run, None, {0})["stack_fingerprint"] != first_fingerprint
+        truncated_run["stdout"].update(preview=OMITTED_PREVIEW, truncated=False, sha256="f" * 64)
+        opaque_fingerprint = crash_metadata(truncated_run, None, {0})["stack_fingerprint"]
+        truncated_run["stdout"]["sha256"] = "0" * 64
+        assert crash_metadata(truncated_run, None, {0})["stack_fingerprint"] != opaque_fingerprint
+        literal_run = {
+            "timed_out": False, "exit_code": 0,
+            "stdout": {"preview": "aaaa!", "truncated": False, "sha256": "d" * 64},
+            "stderr": {"preview": "", "truncated": False, "sha256": "e" * 64},
+        }
+        assert not crash_metadata(literal_run, "(a+)+$", {0})["triggered"]
+        literal_run["stdout"]["preview"] = "panic mode disabled"
+        assert not crash_metadata(literal_run, None, {0})["triggered"]
+        try:
+            validate_run_budget(100, 1, MAX_CAPTURE_BYTES)
+            raise AssertionError("aggregate capture budget was accepted")
+        except ValueError:
+            pass
+        mutation = root / "mutation.bin"
+        mutation.write_bytes(b"before")
+        mutation_artifact = artifact(mutation, "fixture")
+        assert not artifact_changed(mutation_artifact, mutation)
+        mutation.write_bytes(b"after")
+        assert artifact_changed(mutation_artifact, mutation)
+        try:
+            crash_argv([sys.executable, "-c", "pass"], Path(sys.executable), crashing_input)
+            raise AssertionError("crash argv without input placeholder was accepted")
+        except ValueError:
+            pass
         sarif = {"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "fixture", "version": "1"}},
                   "results": [{"ruleId": "R1", "level": "warning", "message": {"text": "lead"}}]}]}
         observations, tools = sarif_observations(sarif, 10)
@@ -1384,6 +1611,17 @@ def parse_args() -> argparse.Namespace:
     runtime.add_argument("--docker", action="store_true")
     runtime.add_argument("--kubectl", action="store_true")
     runtime.add_argument("command", nargs=argparse.REMAINDER, help="Custom argv after --; started with shell=False")
+    crash = subparsers.add_parser("crash", help="Reproduce and fingerprint a crashing or sanitizer input")
+    add_common(crash)
+    crash.add_argument("--target", required=True, help="Executable, harness, module, or fixed-revision target")
+    crash.add_argument("--input", required=True, help="Crashing input file")
+    crash.add_argument("--minimized", help="Optional minimized input to verify once")
+    crash.add_argument("--attempts", type=int, default=3, help="Clean-process reproduction attempts")
+    crash.add_argument("--success-exit", type=int, action="append",
+                       help="Exit code that does not represent a crash; defaults to 0")
+    crash.add_argument("--match", help="Case-insensitive literal text that must appear in bounded stdout/stderr")
+    crash.add_argument("command", nargs=argparse.REMAINDER,
+                       help="Custom argv after -- with {input} and optional {target}; started with shell=False")
     return parser.parse_args()
 
 
@@ -1394,7 +1632,7 @@ def main() -> int:
         print("self-test: ok")
         return 0
     if not args.kind:
-        raise SystemExit("select scan, binary, runtime, or --self-test")
+        raise SystemExit("select scan, binary, runtime, crash, or --self-test")
     if args.command[:1] == ["--"]:
         args.command = args.command[1:]
     if not math.isfinite(args.timeout) or args.timeout <= 0:
@@ -1408,6 +1646,8 @@ def main() -> int:
         raise SystemExit("invalid bounded-string limits")
     if args.kind == "runtime" and not 0 <= args.http_body_bytes <= MAX_ARTIFACT_BYTES:
         raise SystemExit(f"--http-body-bytes must be 0..{MAX_ARTIFACT_BYTES}")
+    if args.kind == "crash" and not 1 <= args.attempts <= 100:
+        raise SystemExit("--attempts must be 1..100")
     overrides = parse_env(args.env)
     env = dict(os.environ, **overrides)
     secrets = secret_values(overrides)
@@ -1427,7 +1667,8 @@ def main() -> int:
         "errors": [],
     }
     try:
-        {"scan": collect_scan, "binary": collect_binary, "runtime": collect_runtime}[args.kind](receipt, args, env, secrets)
+        {"scan": collect_scan, "binary": collect_binary, "runtime": collect_runtime,
+         "crash": collect_crash}[args.kind](receipt, args, env, secrets)
     except Exception as error:
         receipt["errors"].append({"stage": "collect", "message": redact_text(str(error), secrets)})
     receipt["observations"] = receipt["observations"][:args.max_observations]

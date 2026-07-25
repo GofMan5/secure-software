@@ -22,7 +22,7 @@ Secure Software helps coding agents attack, emulate, reverse, protect, threat-mo
 
 It develops and executes working exploit or payload proofs, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation inside the selected target and effect contract. It prioritizes realistic, reachable attack chains over checklist volume. Reportable findings include exact evidence, attacker prerequisites, complete source-to-impact reasoning, counterevidence, blast radius, confidence, and the smallest complete root-boundary fix.
 
-The plugin can use installed Codex Security executors for repository and diff scans while preserving an adversarial evidence contract. It includes provenance-rich MITRE ATT&CK and CISA KEV collection, normalized scanner/binary/decompiler/runtime receipts, a reproducible blind A/B harness, and a cross-language runbook for obfuscation, packing, virtualization, anti-tamper, licensing, signing, and reverse-resistance measurement.
+The plugin can use installed Codex Security executors for repository and diff scans while preserving an adversarial evidence contract. It includes provenance-rich MITRE ATT&CK and CISA KEV collection, normalized scanner/binary/decompiler/runtime/crash receipts, an executable artifact-protection gate, a runtime/IAM path ledger, a reproducible blind A/B harness, and cross-language reverse/protection runbooks.
 
 ## Starter prompts
 

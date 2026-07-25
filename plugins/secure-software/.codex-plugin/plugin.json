@@ -1,6 +1,6 @@
 {
   "name": "secure-software",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Offensive and defensive, evidence-driven security engineering for software and infrastructure.",
   "author": {
     "name": "Maksim (GofMan5)",
@@ -27,7 +27,7 @@
   "interface": {
     "displayName": "Secure Software",
     "shortDescription": "Offensive security engineering",
-    "longDescription": "Attack, emulate, reverse, protect, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow produces working proofs, prioritizes reachable attack chains and explicit evidence, and applies measured software protection or root-boundary remediation when requested.",
+    "longDescription": "Attack, emulate, reverse, protect, threat-model, audit, validate, and harden websites, APIs, services, desktop and mobile apps, cloud and IAM, CI/CD, containers, operating systems, dependencies, and deployed software. The workflow produces working proofs, reconstructs binaries and protocols, normalizes crash and runtime paths, and applies measured artifact protection or root-boundary remediation when requested.",
     "developerName": "GofMan5",
     "category": "Security",
     "capabilities": [
@@ -37,6 +37,7 @@
       "Attack-chain validation",
       "Reverse engineering",
       "Software protection and anti-tamper",
+      "Crash and protection evidence",
       "Cloud, IAM, and CI/CD hardening",
       "Evidence-backed remediation"
     ],

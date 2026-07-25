@@ -443,6 +443,51 @@ Accept a protection layer only when all mandatory correctness/signing/update/cra
 - **Move the decision server-side** when the asset is an entitlement, payment, signing secret, durable key, game state, or frequently changed rule.
 - **Drop the protector** when it mainly increases AV flags, crash opacity, startup time, update size, or support load without delaying the selected recovery/patch task.
 
+### Executable Protection Lab
+
+Put target-specific acceptance criteria in a small JSON manifest and run the same manifest against normal and protected artifacts. Inputs may be one file, a directory, or a ZIP-like package; directory traversal never follows symlinks or Windows reparse points, and archives are inventoried without extraction.
+
+```json
+{
+  "schema_version": 1,
+  "name": "desktop-release",
+  "canaries": ["LICENSE_DECISION_CANARY", "PRIVATE_ROUTE_CANARY"],
+  "thresholds": {
+    "max_size_growth_percent": 25,
+    "max_protected_canary_hits": 0,
+    "min_canary_reduction": 2,
+    "max_source_maps_with_content": 0,
+    "require_protected_digest_change": true
+  },
+  "gates": [
+    {
+      "id": "functional-smoke",
+      "roles": ["baseline", "protected"],
+      "argv": ["TEST_RUNNER", "--artifact", "{artifact}"],
+      "mandatory": true,
+      "expect_exit_codes": [0]
+    },
+    {
+      "id": "signature-and-update",
+      "roles": ["protected"],
+      "argv": ["VERIFY_RELEASE", "{artifact}"],
+      "mandatory": true,
+      "expect_exit_codes": [0]
+    }
+  ]
+}
+```
+
+```text
+python <skill-dir>/scripts/protection_lab.py \
+  --manifest GATES.json --baseline RELEASE --protected PROTECTED \
+  --output protection-receipt.json
+```
+
+Gate argv is an explicit array executed with `shell=False`. Use `{artifact}`, `{artifact_dir}`, and `{role}` placeholders. Optional `cwd`, `max_duration_ms`, `require_equal_stdout`, and `require_equal_stderr` bind functional, performance, crash-symbol, signing, updater, rollback, decompiler, debugger, and AV/EDR checks without teaching the lab product-specific behavior. Environment override values are never recorded.
+
+The receipt contains full artifact or bounded-inventory digests, separate inventory/content-scan truncation flags, size and file deltas, extension and source-map counts, full SHA-256 canary identities and hit locations, exact tool versions and redacted argv, bounded stream digests, unavailable coverage, every threshold, and the final `ship`, `reject`, or `deferred` decision. Canary thresholds require at least one canary. No-follow file handles plus fd-relative directory traversal where supported, with identity/reparse revalidation elsewhere, reject symlink/reparse swaps. Every artifact is inventoried again after gates; changed or unavailable final bytes reject the release and retain the post-gate digest/status. A bounded content scan defers only a selected canary/source-map threshold that depends on complete leakage coverage; bounded inventory still defers the artifact. Gate roles are unique and aggregate timeout/capture budgets bound the run matrix. `ship` means every selected mandatory gate passed; it is not a universal protection score. Increase bounds or add the missing real tool when a required surface is deferred.
+
 ## 10. Release checklist
 
 - [ ] Named assets, adversary tier, useful protection lifetime, and cost ceilings are explicit.

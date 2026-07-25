@@ -77,14 +77,28 @@ codex plugin add secure-software@secure-software
 
 XOR-строки, minification, UPX, ASAR и PyInstaller считаются ограниченным сокрытием, а не trust boundary. Проверка сравнивает protected/unprotected builds через `strings`, symbols, реальный decompiler/debugger и bundled binary adapter; отдельно измеряются startup/runtime, размер, AV/EDR false positives, crash symbolication, reproducibility, updates и rollback.
 
+Stdlib-only Protection Lab превращает эти требования в исполнимый release gate. Он без распаковки инвентаризирует файлы, каталоги и ZIP-подобные пакеты, сравнивает hashed canaries, source maps и размер, запускает явные functional/signing/update/decompiler argv с `shell=False` и выдаёт `ship`, `reject` либо `deferred` со всеми thresholds и пробелами покрытия.
+
+```bash
+python plugins/secure-software/skills/secure-software/scripts/protection_lab.py \
+  --manifest GATES.json --baseline RELEASE --protected PROTECTED \
+  --output protection-receipt.json
+```
+
 ## Детерминированные evidence adapters
 
-Stdlib-only адаптер собирает scanner, binary/decompiler и runtime evidence, не делая внешние инструменты обязательными. Он использует project-native или уже установленные tools, запускает custom argv с `shell=False` и пишет нормализованные receipts со scope, argv, версией, exit state, truncation, raw digest, redaction, observations и errors. Метка сканера остаётся candidate evidence до проверки полной attack chain.
+Stdlib-only адаптер собирает scanner, binary/decompiler, runtime и crash/fuzz evidence, не делая внешние инструменты обязательными. Он использует project-native или уже установленные tools, запускает custom argv с `shell=False` и пишет нормализованные receipts со scope, argv, версией, exit state, truncation, raw digest, redaction, observations и errors. Crash-режим добавляет повторные воспроизведения, sanitizer/fault metadata, нормализованный stack fingerprint и проверку minimized input. Метка сканера или единичный crash остаются candidate evidence до проверки полной attack chain.
 
 ```bash
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --help
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py crash \
+  --target HARNESS --input CRASH --minimized MINIMIZED --output crash.json -- HARNESS {input}
+python plugins/secure-software/skills/secure-software/scripts/runtime_ledger.py paths \
+  --input ledger.jsonl --source PRINCIPAL --sink SINK --output paths.json
 ```
+
+Runtime ledger валидирует JSONL-узлы, active/blocked/unknown edges, ссылки на evidence/counterevidence и непрерывные source/control/sink dispositions. Детерминированный bounded path search подходит и для cloud/IAM, и для dependency-to-deployment цепочек `component -> advisory -> deployed instance -> reachable sink`.
 
 ## ChainBench-12
 
@@ -122,11 +136,17 @@ plugins/secure-software/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── references/
+    │   ├── attack-surface.md
     │   ├── evidence-adapters.md
+    │   ├── intelligence-sources.md
+    │   ├── platform-hardening.md
+    │   ├── reverse-protocol.md
     │   └── software-protection.md
     └── scripts/
         ├── evidence_adapter.py
-        └── fetch_threat_intel.py
+        ├── fetch_threat_intel.py
+        ├── protection_lab.py
+        └── runtime_ledger.py
 ```
 
 В детерминированный release ZIP попадает только `plugins/secure-software`; benchmark runner и публичный corpus остаются снаружи.
@@ -137,6 +157,8 @@ plugins/secure-software/
 python scripts/validate_repo.py
 python plugins/secure-software/skills/secure-software/scripts/fetch_threat_intel.py --self-test
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/protection_lab.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/runtime_ledger.py --self-test
 python scripts/run_ab_benchmark.py --self-test
 python scripts/package_plugin.py
 ```

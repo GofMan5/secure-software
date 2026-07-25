@@ -13,6 +13,10 @@ Focused improvements, new attack-surface evidence, parser hardening, and reprodu
    ```bash
    python scripts/validate_repo.py
    python plugins/secure-software/skills/secure-software/scripts/fetch_threat_intel.py --self-test
+   python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+   python plugins/secure-software/skills/secure-software/scripts/protection_lab.py --self-test
+   python plugins/secure-software/skills/secure-software/scripts/runtime_ledger.py --self-test
+   python scripts/run_ab_benchmark.py --self-test
    python scripts/package_plugin.py
    ```
 

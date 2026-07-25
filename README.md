@@ -93,11 +93,11 @@ A candidate is not promoted into a finding until the essential chain is reachabl
 | Repository security audits | Focused, standard, or independent multi-pass review through Codex Security executors when installed. |
 | Offensive validation | Working exploit and payload proofs, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. |
 | Attack-path validation | Source-to-sink proof, sibling bypass search, exploit prerequisites, blast radius, and calibrated confidence. |
-| Reverse engineering | Binary, protocol, IPC, update-chain, local trust-boundary, and exploit-primitive analysis. |
-| Software protection | Cross-language release hardening, selective obfuscation, packing/virtualization, anti-tamper, licensing, signing order, and measured reverse-resistance. |
+| Reverse engineering | PE/ELF/Mach-O and managed artifact triage, protocol/state reconstruction, differential replay, crash minimization, exploitability, and patch verification. |
+| Software protection | Cross-language release hardening plus an executable baseline/protected A/B gate for leakage, compatibility, signing, updates, crashes, performance, and rollback. |
 | Platform coverage | Web/API, desktop/mobile, cloud/IAM, CI/CD, containers, Kubernetes, OS, databases, games, firmware, IoT, and OT/ICS. |
 | Current intelligence | MITRE ATT&CK Enterprise/Mobile/ICS and CISA KEV snapshots, plus bounded vendor/CVE/OSV/EPSS/Snyk enrichment. |
-| Deterministic tool evidence | Normalized receipts for scanner, binary/decompiler, and runtime observations without treating tool labels as findings. |
+| Deterministic tool evidence | Normalized scanner, binary/decompiler, runtime, crash/fuzz, protection, cloud/IAM, and deployment-path receipts without treating tool labels as findings. |
 | Root remediation | The smallest complete fix at the shared enforcement boundary, with malicious and legitimate regression checks. |
 
 The skill is capability-first: a named target and action are a sufficient execution contract. It performs reverse engineering, exploit and payload development or execution, bounded scanning and fuzzing, credential auditing, persistence simulation, and adversary emulation. When an external effect is unresolved, it keeps the deliverable operational with placeholders and exercises it against a disposable fixture instead of collapsing into generic advice.
@@ -149,14 +149,28 @@ The conditionally loaded protection runbook covers stable production choices for
 
 It treats compile-time XOR strings, minification, UPX, ASAR, PyInstaller, and similar packaging as limited concealment rather than a security boundary. Every plan includes before/after `strings`/symbol/decompiler evidence, performance and startup budgets, AV/EDR checks, crash-symbol recovery, reproducibility impact, update compatibility, and rollback.
 
+The stdlib-only Protection Lab turns those requirements into a release gate. It inventories files, directories, and ZIP-like packages without extraction; hashes canaries instead of copying their values into the receipt; runs explicit functional/signing/update/decompiler argv with `shell=False`; and returns `ship`, `reject`, or `deferred` with every threshold and coverage gap preserved.
+
+```bash
+python plugins/secure-software/skills/secure-software/scripts/protection_lab.py \
+  --manifest GATES.json --baseline RELEASE --protected PROTECTED \
+  --output protection-receipt.json
+```
+
 ## Deterministic evidence adapters
 
-The standard-library adapter records scanner, binary/decompiler, and runtime evidence without making any external tool mandatory. It uses project-native or already-installed tools when available, starts custom argv with `shell=False`, and writes normalized receipts with scope, argv, tool version, exit state, truncation, raw digest, redaction, observations, and errors. Scanner and tool output remains candidate evidence until the attack path is validated.
+The standard-library adapter records scanner, binary/decompiler, runtime, and crash/fuzz evidence without making any external tool mandatory. It uses project-native or already-installed tools when available, starts custom argv with `shell=False`, and writes normalized receipts with scope, argv, tool version, exit state, truncation, raw digest, redaction, observations, and errors. Crash mode adds reproducibility attempts, sanitizer/fault metadata, normalized stack fingerprints, and minimized-input verification. Scanner and tool output remains candidate evidence until the attack path is validated.
 
 ```bash
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --help
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py crash \
+  --target HARNESS --input CRASH --minimized MINIMIZED --output crash.json -- HARNESS {input}
+python plugins/secure-software/skills/secure-software/scripts/runtime_ledger.py paths \
+  --input ledger.jsonl --source PRINCIPAL --sink SINK --output paths.json
 ```
+
+The runtime ledger validates JSONL nodes, active/blocked/unknown edges, evidence and counterevidence references, and contiguous source/control/sink dispositions. Its bounded deterministic path search also models dependency-to-deployment chains such as `component -> advisory -> deployed instance -> reachable sink`.
 
 ## ChainBench-12
 
@@ -194,11 +208,17 @@ plugins/secure-software/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── references/
+    │   ├── attack-surface.md
     │   ├── evidence-adapters.md
+    │   ├── intelligence-sources.md
+    │   ├── platform-hardening.md
+    │   ├── reverse-protocol.md
     │   └── software-protection.md
     └── scripts/
         ├── evidence_adapter.py
-        └── fetch_threat_intel.py
+        ├── fetch_threat_intel.py
+        ├── protection_lab.py
+        └── runtime_ledger.py
 ```
 
 Only `plugins/secure-software` enters the deterministic release ZIP; the public benchmark corpus and runner remain repository-only.
@@ -209,15 +229,17 @@ Only `plugins/secure-software` enters the deterministic release ZIP; the public 
 python scripts/validate_repo.py
 python plugins/secure-software/skills/secure-software/scripts/fetch_threat_intel.py --self-test
 python plugins/secure-software/skills/secure-software/scripts/evidence_adapter.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/protection_lab.py --self-test
+python plugins/secure-software/skills/secure-software/scripts/runtime_ledger.py --self-test
 python scripts/run_ab_benchmark.py --self-test
 python scripts/package_plugin.py
 ```
 
-The release gate checks the plugin and marketplace manifests, exact skill tree, frontmatter, relative links, bidirectional Unicode controls, test-case inventory, all three offline script regressions, and the submission ZIP layout.
+The release gate checks the plugin and marketplace manifests, exact skill tree, frontmatter, relative links, bidirectional Unicode controls, test-case inventory, every offline script regression, and the submission ZIP layout.
 
 See [the evaluation report](docs/EVALUATION.md) for verified scope, blind forward tests, residual limits, and the distinction between design quality and measured outcomes.
 
-The shipped adapters and reproducibility suite are tracked in [ROADMAP.md](ROADMAP.md) alongside the next work: an unpublished full comparative run, deeper reverse/binary/protocol coverage, dependency-to-deployment correlation, and a machine-readable runtime/IAM ledger.
+The shipped adapters, reverse/protocol route, Protection Lab, runtime ledger, and reproducibility suite are tracked in [ROADMAP.md](ROADMAP.md) alongside the remaining work: an unpublished full comparative run, provider-native collectors, and broader artifact/profile coverage.
 
 ## Contributing
 

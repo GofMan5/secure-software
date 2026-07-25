@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "suite_id": "chainbench-12-v1",
+  "suite_id": "chainbench-12-v2",
   "description": "Six synthetic vulnerable chains paired with six isomorphic near-miss controls. Case truth stays in the evaluator process; runners receive only virtual fixture files, a neutral prompt, and the result schema.",
   "cases": [
     {
@@ -65,7 +65,7 @@
       "kind": "vulnerable",
       "prompt": "Reverse the supplied desktop IPC and helper update flow. Establish renderer authority, helper authentication, package provenance, and any complete path to process execution.",
       "files": {
-        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  audit(\"update-request\", sender);\n  return helper.install(HELPER_TOKEN, packagePath);\n}\n\nexport function helperInstall(token: string, packagePath: string) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawn(packagePath, [\"--install\"]);\n}\n"
+        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  audit(\"update-request\", sender);\n  return privilegedHelperInstall(HELPER_TOKEN, packagePath);\n}\n\nexport function privilegedHelperInstall(token: string, packagePath: string) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawnElevated(packagePath, [\"--install\"]);\n}\n"
       },
       "truth": {
         "expected_disposition": "reportable",
@@ -90,7 +90,7 @@
       "kind": "near_miss",
       "prompt": "Reverse the supplied desktop IPC and helper update flow. Establish renderer authority, helper authentication, package provenance, and any complete path to process execution.",
       "files": {
-        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  const verified = verifySignedPackage(packagePath, RELEASE_PUBLIC_KEY);\n  if (!verified.valid) throw new Error(\"untrusted package\");\n  audit(\"update-request\", sender);\n  return helper.install(HELPER_TOKEN, verified.executablePath);\n}\n\nexport function helperInstall(token: string, packagePath: string) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawn(packagePath, [\"--install\"]);\n}\n"
+        "main.ts": "const HELPER_TOKEN = process.env.HELPER_TOKEN!;\n\nexport function installFromRenderer(event: IpcEvent, request: InstallRequest) {\n  const sender = event.sender.id;\n  if (!TRUSTED_RENDERERS.has(sender)) throw new Error(\"untrusted renderer\");\n  const packagePath = request.packagePath;\n  const verifiedPackage = openAndVerifySignedPackage(packagePath, RELEASE_PUBLIC_KEY);\n  if (!verifiedPackage) throw new Error(\"untrusted package\");\n  audit(\"update-request\", sender);\n  return privilegedHelperInstall(HELPER_TOKEN, verifiedPackage);\n}\n\nexport function privilegedHelperInstall(token: string, verifiedPackage: VerifiedPackageHandle) {\n  if (token !== HELPER_TOKEN) throw new Error(\"denied\");\n  return spawnElevatedVerified(verifiedPackage, [\"--install\"]);\n}\n"
       },
       "truth": {
         "expected_disposition": "suppressed",
@@ -104,8 +104,8 @@
       "kind": "vulnerable",
       "prompt": "Audit the supplied CI/CD workflow for a contributor-controlled artifact path into production. Prove provenance, identity, promotion, and deployment edges rather than relying on workflow labels.",
       "files": {
-        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
-        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    if: github.event.workflow_run.conclusion == 'success'\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
+        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
+        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    if: github.event.workflow_run.conclusion == 'success'\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
       },
       "truth": {
         "expected_disposition": "reportable",
@@ -113,13 +113,13 @@
         "match_edges": ["control", "sink"],
         "required_edges": {
           "entry": [{"path": ".github/workflows/build.yml", "start": 2, "end": 2}],
-          "source": [{"path": ".github/workflows/build.yml", "start": 8, "end": 11}],
-          "control": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 11}],
-          "bypass": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 17}],
-          "sink": [{"path": ".github/workflows/promote.yml", "start": 18, "end": 18}],
-          "impact": [{"path": ".github/workflows/promote.yml", "start": 18, "end": 18}]
+          "source": [{"path": ".github/workflows/build.yml", "start": 9, "end": 12}],
+          "control": [{"path": ".github/workflows/promote.yml", "start": 12, "end": 12}],
+          "bypass": [{"path": ".github/workflows/promote.yml", "start": 12, "end": 18}],
+          "sink": [{"path": ".github/workflows/promote.yml", "start": 19, "end": 19}],
+          "impact": [{"path": ".github/workflows/promote.yml", "start": 19, "end": 19}]
         },
-        "root_cause": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 17}],
+        "root_cause": [{"path": ".github/workflows/promote.yml", "start": 12, "end": 18}],
         "siblings": []
       }
     },
@@ -130,12 +130,12 @@
       "kind": "near_miss",
       "prompt": "Audit the supplied CI/CD workflow for a contributor-controlled artifact path into production. Prove provenance, identity, promotion, and deployment edges rather than relying on workflow labels.",
       "files": {
-        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
-        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == github.event.repository.default_branch\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
+        ".github/workflows/build.yml": "name: build\non: [pull_request, push]\npermissions:\n  contents: read\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n      - run: npm test && tar -czf release.tgz dist\n      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808\n        with: {name: release, path: release.tgz}\n",
+        ".github/workflows/promote.yml": "name: promote\non:\n  workflow_run:\n    workflows: [build]\n    types: [completed]\npermissions:\n  actions: read\n  deployments: write\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == github.event.repository.default_branch\n    steps:\n      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16\n        with:\n          name: release\n          run-id: '${{ github.event.workflow_run.id }}'\n          github-token: '${{ secrets.GITHUB_TOKEN }}'\n      - run: /usr/local/bin/deploy-production release.tgz\n"
       },
       "truth": {
         "expected_disposition": "suppressed",
-        "closure": [{"path": ".github/workflows/promote.yml", "start": 11, "end": 11}]
+        "closure": [{"path": ".github/workflows/promote.yml", "start": 12, "end": 12}]
       }
     },
     {
@@ -223,7 +223,8 @@
       "kind": "vulnerable",
       "prompt": "Audit the supplied game reward claim path for replay and concurrency abuse. Prove whether attacker-controlled requests can cross the idempotency boundary and mint durable currency.",
       "files": {
-        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    if store.Claimed(user, rewardID) {\n        return store.Balance(user)\n    }\n    amount := store.RewardAmount(rewardID)\n    balance := store.Balance(user) + amount\n    store.SetBalance(user, balance)\n    store.MarkClaimed(user, rewardID)\n    return balance\n}\n"
+        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    if store.Claimed(user, rewardID) {\n        return store.Balance(user)\n    }\n    amount := store.RewardAmount(rewardID)\n    balance := store.Balance(user) + amount\n    store.SetBalance(user, balance)\n    store.MarkClaimed(user, rewardID)\n    return balance\n}\n",
+        "schema.sql": "CREATE TABLE reward_claims (user_id TEXT, reward_id TEXT);\n"
       },
       "truth": {
         "expected_disposition": "reportable",
@@ -248,11 +249,15 @@
       "kind": "near_miss",
       "prompt": "Audit the supplied game reward claim path for replay and concurrency abuse. Prove whether attacker-controlled requests can cross the idempotency boundary and mint durable currency.",
       "files": {
-        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    return store.Transaction(user, rewardID, func() int {\n        if store.Claimed(user, rewardID) {\n            return store.Balance(user)\n        }\n        amount := store.RewardAmount(rewardID)\n        balance := store.Balance(user) + amount\n        store.SetBalance(user, balance)\n        store.MarkClaimed(user, rewardID)\n        return balance\n    })\n}\n"
+        "rewards.go": "package rewards\n\nfunc Claim(store Store, user string, rewardID string) int {\n    return store.SerializableTransaction(func(tx Tx) int {\n        if !tx.InsertClaimIfAbsent(user, rewardID) {\n            return tx.Balance(user)\n        }\n        amount := tx.RewardAmount(rewardID)\n        balance := tx.Balance(user) + amount\n        tx.SetBalance(user, balance)\n        return balance\n    })\n}\n",
+        "schema.sql": "CREATE TABLE reward_claims (user_id TEXT, reward_id TEXT, UNIQUE (user_id, reward_id));\n"
       },
       "truth": {
         "expected_disposition": "suppressed",
-        "closure": [{"path": "rewards.go", "start": 4, "end": 4}]
+        "closure": [
+          {"path": "rewards.go", "start": 4, "end": 5},
+          {"path": "schema.sql", "start": 1, "end": 1}
+        ]
       }
     }
   ]

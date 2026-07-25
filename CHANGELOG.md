@@ -2,6 +2,16 @@
 
 All notable changes follow [Semantic Versioning](https://semver.org/).
 
+## 1.3.0 - 2026-07-25
+
+- Added a conditionally loaded reverse/protocol runbook for PE, ELF, Mach-O, managed/mobile, Wasm, game, and firmware artifacts, including static/dynamic reconstruction, differential replay, fuzzing, crash reduction, exploitability, and patch verification.
+- Added repeated crash/fuzz receipts with target, crashing and minimized input digests, sanitizer/fault normalization, stable stack fingerprints, and minimized-input verification.
+- Added the stdlib-only Protection Lab for file, directory, and ZIP-like baseline/protected artifacts with hashed canaries, source-map leakage, explicit tool gates, thresholds, and `ship`, `reject`, or `deferred` decisions.
+- Added a validated JSONL runtime/cloud/IAM/deployment ledger with deterministic bounded path search, active/blocked/unknown edge semantics, evidence and counterevidence, and continuous source/control/sink dispositions.
+- Hardened the new execution paths with aggregate timeout/capture budgets, strict JSON types, unique gate/path roles, distinct truncated-output fingerprints, bounded BFS queues, and staged release packaging with rollback.
+- Published corrected `ChainBench-12 v2` workflow/replay fixtures and now require a matching root-cause citation before a reportable candidate earns detection or precision credit.
+- Integrated every new executable into offline self-tests, repository validation, release packaging, English/Russian documentation, evaluation, and roadmap evidence.
+
 ## 1.2.0 - 2026-07-24
 
 - Added the stdlib-only ChainBench-12 blind A/B runner with six vulnerable/near-miss pairs, reproducible randomization, frozen execution-context receipts, process-tree deadlines, mutation checks, and deterministic evidence metrics.

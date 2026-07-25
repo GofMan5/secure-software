@@ -30,9 +30,12 @@ EXPECTED_SKILL_FILES = {
     "references/evidence-adapters.md",
     "references/intelligence-sources.md",
     "references/platform-hardening.md",
+    "references/reverse-protocol.md",
     "references/software-protection.md",
     "scripts/evidence_adapter.py",
     "scripts/fetch_threat_intel.py",
+    "scripts/protection_lab.py",
+    "scripts/runtime_ledger.py",
 }
 
 
@@ -157,6 +160,8 @@ def run_self_tests() -> None:
     for script in (
         SKILL / "scripts" / "fetch_threat_intel.py",
         SKILL / "scripts" / "evidence_adapter.py",
+        SKILL / "scripts" / "protection_lab.py",
+        SKILL / "scripts" / "runtime_ledger.py",
         ROOT / "scripts" / "run_ab_benchmark.py",
     ):
         subprocess.run([sys.executable, "-B", str(script), "--self-test"], check=True, cwd=ROOT, env=env)

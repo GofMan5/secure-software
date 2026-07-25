@@ -1,11 +1,13 @@
-# Release Notes — 1.2.0
+# Release Notes — 1.3.0
 
-Measured evidence and software-protection release.
+Executable reverse, protection, crash, and runtime-path release.
 
-- Adds the stdlib-only ChainBench-12 blind A/B runner with six vulnerable/near-miss pairs, frozen execution contexts, process-tree deadlines, mutation checks, and deterministic scoring.
-- Adds scanner, binary/decompiler, and runtime evidence adapters with bounded collection, normalized receipts, redaction, and offline self-tests.
-- Adds a production runbook for C/C++, Rust, Go, .NET, JVM/Android, JavaScript/Electron, Python, Apple, WebAssembly, Unity, and Unreal protection stacks.
-- Covers release hardening, selective obfuscation, packing and virtualization, anti-tamper, licensing, signing order, private symbols, updates, rollback, and measured reverse resistance.
+- Adds a conditional PE/ELF/Mach-O, managed/mobile, Wasm, game, firmware, and protocol route with static/dynamic reconstruction, replay, fuzz/crash reduction, exploitability, and patch verification.
+- Adds repeated crash receipts with sanitizer/fault metadata, stable stack fingerprints, artifact digests, and minimized-input verification.
+- Adds a stdlib Protection Lab for baseline/protected file, directory, and ZIP-like artifacts with hashed canaries, source-map leakage, explicit release gates, and `ship`/`reject`/`deferred` receipts.
+- Adds a validated runtime/cloud/IAM/deployment JSONL ledger with bounded deterministic attack-path search and continuous source/control/sink dispositions.
+- Publishes corrected ChainBench-12 v2 fixtures and scoring so a reportable candidate needs the correct root cause, then stages ZIP/checksum publication so failed packaging preserves the previous release artifact.
+- Keeps ChainBench-12, normalized scanner/binary/runtime evidence, cross-language protection guidance, deterministic packaging, and offline validation.
 - Keeps the same portable Agent Skills source installable in Claude Code, Codex, GitHub Copilot, OpenCode, Pi, OMP, and compatible clients.
 
 No third-party runtime dependency, MCP server, connector, authentication flow, telemetry, or external backend is included.

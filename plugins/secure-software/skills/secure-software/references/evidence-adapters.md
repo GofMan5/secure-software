@@ -101,6 +101,35 @@ Wrap another runtime collector as a direct argv vector (`shell=False`):
 python <skill-dir>/scripts/evidence_adapter.py runtime --cwd TARGET --output runtime.json -- TOOL ARG1 ARG2
 ```
 
+## Fuzz and crash evidence
+
+Reproduce a crashing or sanitizer input from a fresh process multiple times. The command must contain `{input}` and may contain `{target}`; it remains an explicit argv vector started with `shell=False`:
+
+```text
+python <skill-dir>/scripts/evidence_adapter.py crash \
+  --target HARNESS --input CRASH --minimized MINIMIZED --attempts 3 \
+  --output crash.json -- HARNESS --input {input}
+```
+
+The receipt binds target, crashing input, and minimized input digests; tool version and argv; exit state; sanitizer/fault markers; normalized stack fingerprints; output truncation; reproduction successes; fingerprint stability; and whether the minimized input reproduced the primary fingerprint. Truncated streams contribute their full-stream digests to the fingerprint, and aggregate timeout/capture budgets bound repeated runs. Use `--match TEXT` for a case-insensitive literal marker when a target reports a handled crash with an ordinary exit code, or repeat `--success-exit CODE` when more than one exit code is non-crashing. A stable crash remains a lead until controlled state and security impact are established.
+
+## Runtime, IAM, and deployment ledger
+
+Normalize non-repository evidence into line-delimited JSON records before claiming a privilege or deployment path. Use `node` records for principals, identities, roles, permissions, policies, network boundaries, services, workloads, secrets, components, advisories, deployments, controls, and sinks. Use `edge` records with `from`, `to`, `relation`, `state`, conditions, evidence references, and counterevidence. A `disposition` record must name a contiguous source-to-sink edge chain and a control node.
+
+```json
+{"schema_version":1,"record":"node","id":"workload:reader","kind":"principal"}
+{"schema_version":1,"record":"node","id":"role:deployer","kind":"role"}
+{"schema_version":1,"record":"edge","id":"e1","from":"workload:reader","to":"role:deployer","relation":"can_assume","state":"active","evidence":["runtime.json#/binding/0"]}
+```
+
+```text
+python <skill-dir>/scripts/runtime_ledger.py validate --input ledger.jsonl --output ledger-receipt.json
+python <skill-dir>/scripts/runtime_ledger.py paths --input ledger.jsonl --source workload:reader --sink service:prod --output paths.json
+```
+
+Path search uses deterministic BFS with path, expansion, depth, and queue bounds; it ignores `blocked` edges and traverses `unknown` edges only with `--include-unknown`, marking every such result. The validator rejects dangling references, repeated disposition edge IDs, discontinuous chains, identical source/sink nodes, controls outside the selected chain, and `reportable` chains containing a non-active or unevidenced edge. The same graph can connect `component -> advisory -> deployed component -> reachable sink` without confusing advisory presence with runtime impact.
+
 Pass a required process environment value with `--env NAME=VALUE`. Only `NAME` is stored; explicit values, credential-shaped tokens, sensitive argv values, URL credentials, and query values are removed from opt-in previews. Redaction cannot classify every target-defined secret, so keep receipts private and use scoped credentials. Prefer credential-provider or platform-native environment injection so secrets do not enter terminal history.
 
 ## Receipt contract
@@ -110,8 +139,8 @@ Pass a required process environment value with `--env NAME=VALUE`. Only `NAME` i
 ```json
 {
   "schema_version": 1,
-  "adapter": {"name": "secure-software-evidence", "version": "1.0"},
-  "kind": "scanner | binary | runtime",
+  "adapter": {"name": "secure-software-evidence", "version": "1.1"},
+  "kind": "scan | binary | runtime | crash",
   "scope": "TARGET",
   "started_at": "UTC timestamp",
   "finished_at": "UTC timestamp",
